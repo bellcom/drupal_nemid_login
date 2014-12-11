@@ -1,0 +1,241 @@
+<?php
+/**
+ * @file
+ * Based on https://code.google.com/p/nemid-php/ which is under the MIT licences
+ * The following documents where used to implement the Javascript client:
+ * - http://www.nets.eu/dk-da/Service/kundeservice/nemid-tu/NemID-tjenesteudbyderpakken-okt-2014/Documents/Konfiguration%20og%20ops%C3%A6tning.pdf
+ * - http://www.nets.eu/dk-da/Service/kundeservice/nemid-tu/NemID-tjenesteudbyderpakken-okt-2014/Documents/NemID%20Integration%20-%20OCES.pdf
+ * @author Henrik Farre <hf@bellcom.dk>
+ */
+
+require dirname(__FILE__).'/lib/Nemid.php';
+
+/**
+ * Implements hook_menu().
+ */
+function drupal_nemid_login_menu() {
+  $items['nemid'] = array(
+    'title'            => t('NemID login page'),
+    'page callback'    => '_drupal_nemid_login_page',
+    'page arguments'   => array(),
+    'access arguments' => array('View published content'),
+    'type'             => MENU_CALLBACK,
+  );
+
+  $items['nemid/verify'] = array(
+    'title'            => t('NemID login verify'),
+    'page callback'    => '_drupal_nemid_login_verify',
+    'page arguments'   => array(),
+    'access arguments' => array('access content'),
+    'type'             => MENU_CALLBACK,
+  );
+
+  $items['admin/config/system/nemid'] = array(
+    'title'            => t('Configure NemID'),
+    'description'      => t('Configure NemID settings'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('_drupal_nemid_login_admin'),
+    'access arguments' => array('access administration pages'),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function drupal_nemid_login_block_info() {
+  $blocks['nemid_login'] = array(
+    'info' => t('NemID login block'),
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function drupal_nemid_login_block_view($delta = '') {
+  // TODO: <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  // see http://www.nets.eu/dk-da/Service/kundeservice/nemid-tu/NemID-tjenesteudbyderpakken-okt-2014/Documents/NemID%20Integration%20-%20OCES.pdf
+
+  $block = array();
+  switch ($delta) {
+    case 'nemid_login':
+      $block['subject'] = t('NemID Login');
+      $block['content'] = theme('nemid_login_block', array('params' => _drupal_nemid_login_get_params(), 'settings' => _drupal_nemid_login_get_settings()));
+      break;
+  }
+
+  return $block;
+}
+
+function _drupal_nemid_login_page() {
+  return theme('nemid_login_block', array('params' => _drupal_nemid_login_get_params(), 'settings' => _drupal_nemid_login_get_settings()));
+}
+
+/**
+ * Implements hook_theme().
+ */
+function drupal_nemid_login_theme($existing, $type, $theme, $path) {
+  return array(
+    'nemid_login_block' => array(
+      'path'      => drupal_get_path('module', 'drupal_nemid_login').'/templates',
+      'template'  => 'block',
+      'variables' => array('params' => NULL, 'settings' => NULL),
+    ),
+  );
+}
+
+function _drupal_nemid_login_get_params() {
+  $nemidlogin = new WAYF\nemidlogin();
+  $config = _drupal_nemid_login_get_config_object();
+  $oldParams = $nemidlogin->prepareparamsfornemid($config);
+
+  // TODO: rewrite so code is not duplicated
+
+  $millisec= round(microtime(TRUE) * 1000);
+
+  $params = [
+    "SP_CERT"          => $oldParams['paramcert'],
+    "CLIENTFLOW"       => "OCESLOGIN2",
+    "SIGN_PROPERTIES"  => "challenge=". $millisec,
+    "TIMESTAMP"        => $millisec,
+  ];
+
+  uksort($params, "strnatcasecmp");
+
+  $normalized = '';
+  foreach ($params as $name => $value) {
+    $normalized .= strtolower($name) . $value;
+  }
+  $normalized = utf8_encode($normalized);
+  $paramsdigest = hash('sha256', $normalized, TRUE);
+  $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
+
+  $privatekey = file_get_contents($config->privatekey);
+  $key = openssl_pkey_get_private($privatekey, $config->privatekeypass);
+  WAYF\Nemid52Compat::openssl_sign($normalized, $signeddigest, $key, 'sha256WithRSAEncryption');
+  $params['DIGEST_SIGNATURE'] = base64_encode($signeddigest);
+
+  $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
+  //$encodedParams = file_get_contents(dirname(__FILE__).'/parameter_dump.txt');
+  return $encodedParams;
+}
+
+function _drupal_nemid_login_get_settings() {
+  $millisec = round(microtime(TRUE) * 1000);
+  $variablePrefix = 'nemid_login_';
+  $mode = variable_get($variablePrefix.'mode', 'test');
+
+  $baseUrl = variable_get($variablePrefix.'base_url_'.$mode);
+  $ui_mode = variable_get($variablePrefix.'ui_mode_'.$mode, 'std');
+
+  $settings = array(
+    'iframe_url'    => $baseUrl.'/launcher/'.$ui_mode.'/'.$millisec,
+    'danid_baseurl' => $baseUrl,
+  );
+
+  return $settings;
+}
+
+function _drupal_nemid_login_verify() {
+  $DISABLE_OCSP_CHECK = TRUE;
+
+  if ( isset($_POST['response']) ) {
+    require dirname(__FILE__).'/lib/nemid-error-codes.php';
+    $response = base64_decode($_POST['response']);
+
+    if (isset($errorcodes[$response])) {
+      drupal_set_message(t($errorcodes[$response]['description']), 'error');
+      $_SESSION['nemid_login'] = array();
+      $_SESSION['nemid_login']['errors'] = $errorcodes[$response];
+      drupal_goto('<front>');
+    }
+    else {
+      $_SESSION['nemid_login'] = array();
+
+      $trustedrootdigests = new StdClass();
+      $trustedrootdigests->trustedrootdigests = array(
+        'preproductionCertificateOcesII'  => '0e2fd1fda36a4bf3995e28619704d60e3382c91e44a2b458ab891316380b1d50',
+      );
+
+      $nemid = new WAYF\NemidCertificateCheck();
+      try
+      {
+        $certificate = $nemid->checkAndReturnCertificate($_POST['response'], FALSE, $trustedrootdigests, $DISABLE_OCSP_CHECK);
+        $subject = end($certificate['tbsCertificate']['subject']);
+        $pid = $subject['serialNumber'];
+        $cn = $subject['commonName'];
+
+        drupal_set_message(t('Login ok: @cn', array('@cn' => $cn)), 'success');
+        drupal_goto('<front>');
+      }
+      catch (Exception $e)
+      {
+        echo $e->getMessage();
+      }
+    }
+  }
+}
+
+function _drupal_nemid_login_admin() {
+  $form = array();
+
+  $variablePrefix = 'nemid_login_';
+  $modes = array('test','live');
+
+  $sharedFields = array(
+    'certificate'           => array('type' => 'textarea', 'title' => t('Certificate')),
+    'private_key'           => array('type' => 'textarea', 'title' => t('Private key')),
+    'private_key_password'  => array('type' => 'password', 'title' => t('Private key password')),
+    'base_url'              => array('type' => 'textfield', 'title' => t('Base url')),
+    'ui_mode'               => array('type' => 'radios', 'title' => t('UI mode'), 'options' => array('std' => t('Standard'), 'lmt' => t('Limited'))),
+    );
+
+  $form[$variablePrefix.'mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('NemID mode'),
+    '#options' => array(
+      'live' => t('Live'),
+      'test' => t('Test'),
+    ),
+   '#default_value' => variable_get($variablePrefix.'mode', 'test'),
+  );
+
+  foreach ($modes as $mode) {
+    $form[$variablePrefix.$mode] = array(
+      '#title' => t('Settings for '. $mode.' mode'),
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      );
+    foreach ($sharedFields as $fieldKey => $field) {
+      $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode] = array(
+        '#type' => $field['type'],
+        '#title' => $field['title'],
+        '#default_value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL),
+        '#required' => TRUE,
+      );
+      if ($field['type'] == 'radios') {
+        $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#options'] = $field['options'];
+      }
+    }
+  }
+
+  return system_settings_form($form);
+}
+
+function _drupal_nemid_login_get_config_object() {
+  $variablePrefix = 'nemid_login_';
+  $mode = variable_get($variablePrefix.'mode', 'test');
+
+  $config = new StdClass();
+  $config->privatekey      = variable_get($variablePrefix.'private_key_'.$mode);
+  $config->privatekeypass  = variable_get($variablePrefix.'private_key_password_'.$mode);
+  $config->certificate     = variable_get($variablePrefix.'certificate_'.$mode);
+  $config->serverurlprefix = variable_get($variablePrefix.'base_url_'.$mode);
+
+  return $config;
+}
