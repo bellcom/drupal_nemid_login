@@ -108,9 +108,8 @@ function _drupal_nemid_login_get_params() {
 
   $normalized = '';
   foreach ($params as $name => $value) {
-    $normalized .= strtolower($name) . $value;
+    $normalized .= $name . $value;
   }
-  $normalized = utf8_encode($normalized);
   $paramsdigest = hash('sha256', $normalized, TRUE);
   $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
 
@@ -119,7 +118,6 @@ function _drupal_nemid_login_get_params() {
   $params['DIGEST_SIGNATURE'] = base64_encode($signeddigest);
 
   $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
-  //$encodedParams = file_get_contents(dirname(__FILE__).'/parameter_dump.txt');
   return $encodedParams;
 }
 
@@ -229,11 +227,13 @@ function _drupal_nemid_login_admin() {
 function _drupal_nemid_login_get_config_object() {
   $variablePrefix = 'nemid_login_';
   $mode = variable_get($variablePrefix.'mode', 'test');
+  $search  = "\r\n";
+  $replace = "\n";
 
   $config = new StdClass();
-  $config->privatekey      = variable_get($variablePrefix.'private_key_'.$mode);
+  $config->privatekey      = str_replace($search, $replace, variable_get($variablePrefix.'private_key_'.$mode));
   $config->privatekeypass  = variable_get($variablePrefix.'private_key_password_'.$mode);
-  $config->certificate     = variable_get($variablePrefix.'certificate_'.$mode);
+  $config->certificate     = str_replace($search, $replace, variable_get($variablePrefix.'certificate_'.$mode));
   $config->serverurlprefix = variable_get($variablePrefix.'base_url_'.$mode);
 
   return $config;
