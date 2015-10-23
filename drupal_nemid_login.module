@@ -110,11 +110,15 @@ function _drupal_nemid_login_get_params() {
   foreach ($params as $name => $value) {
     $normalized .= $name . $value;
   }
-  $paramsdigest = hash('sha256', $normalized, TRUE);
+  // $paramsdigest = hash('sha256', $normalized, TRUE);
+  $paramsdigest = openssl_digest($normalized, 'SHA256', TRUE);
   $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
 
   $key = openssl_pkey_get_private($config->privatekey, $config->privatekeypass);
-  WAYF\Nemid52Compat::openssl_sign($normalized, $signeddigest, $key, 'sha256WithRSAEncryption');
+  // WAYF\Nemid52Compat::openssl_sign($normalized, $signeddigest, $key, 'sha256WithRSAEncryption');
+
+  openssl_sign($normalized, $signeddigest, $key, OPENSSL_ALGO_SHA256);
+
   $params['DIGEST_SIGNATURE'] = base64_encode($signeddigest);
 
   $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
@@ -227,8 +231,8 @@ function _drupal_nemid_login_admin() {
 function _drupal_nemid_login_get_config_object() {
   $variablePrefix = 'nemid_login_';
   $mode = variable_get($variablePrefix.'mode', 'test');
-  $search  = "\r\n";
-  $replace = "\n";
+  $search  = array("\r\n", "-----BEGIN CERTIFICATE-----\n", "\n-----END CERTIFICATE-----\n");
+  $replace = array("\n", "", "");
 
   $config = new StdClass();
   $config->privatekey      = str_replace($search, $replace, variable_get($variablePrefix.'private_key_'.$mode));
