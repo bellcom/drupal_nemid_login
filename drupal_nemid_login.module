@@ -88,37 +88,49 @@ function drupal_nemid_login_theme($existing, $type, $theme, $path) {
   );
 }
 
+function stripCertificate($toBeStripped)
+{
+    $result = str_replace("\n", "", $toBeStripped);
+    $result = str_replace("\r", "", $result);
+    $result = str_replace("-----BEGIN CERTIFICATE-----", "", $result);
+    $result = str_replace("-----END CERTIFICATE-----", "", $result);
+    return $result;
+}
+
 function _drupal_nemid_login_get_params() {
-  $nemidlogin = new WAYF\nemidlogin();
-  $config = _drupal_nemid_login_get_config_object();
-  $oldParams = $nemidlogin->prepareparamsfornemid($config);
+    $nemidlogin = new WAYF\nemidlogin();
+    $config = _drupal_nemid_login_get_config_object();
+    $oldParams = $nemidlogin->prepareparamsfornemid($config);
 
-  // TODO: rewrite so code is not duplicated
+    $millisec= strval(intval(microtime(true))*1000);
 
-  $millisec= round(microtime(TRUE) * 1000);
+    $params = [
+        "SP_CERT"          => stripCertificate($oldParams['paramcert']),
+        "CLIENTFLOW"       => "OCESLOGIN2",
+        "SIGN_PROPERTIES"  => "challenge=". $millisec,
+        "TIMESTAMP"        => $millisec,
+    ];
 
-  $params = [
-    "SP_CERT"          => $oldParams['paramcert'],
-    "CLIENTFLOW"       => "OCESLOGIN2",
-    "SIGN_PROPERTIES"  => "challenge=". $millisec,
-    "TIMESTAMP"        => $millisec,
-  ];
+    uksort($params, "strnatcasecmp");
 
-  uksort($params, "strnatcasecmp");
+    $normalized = '';
+    foreach ($params as $name => $value) {
+        $normalized .= $name . $value;
+    }
 
-  $normalized = '';
-  foreach ($params as $name => $value) {
-    $normalized .= $name . $value;
-  }
-  $paramsdigest = hash('sha256', $normalized, TRUE);
-  $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
 
-  $key = openssl_pkey_get_private($config->privatekey, $config->privatekeypass);
-  WAYF\Nemid52Compat::openssl_sign($normalized, $signeddigest, $key, 'sha256WithRSAEncryption');
-  $params['DIGEST_SIGNATURE'] = base64_encode($signeddigest);
+    $utfparams = mb_convert_encoding($normalized, "UTF-8", "auto");
+    $paramsdigest = hash('sha256', $utfparams, true);
+    $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
 
-  $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
-  return $encodedParams;
+
+    $key = openssl_pkey_get_private($config->privatekey, $config->privatekeypass);
+    openssl_sign($utfparams, $signature, $key, 'sha256');
+
+    $params['DIGEST_SIGNATURE'] = base64_encode($signature);
+
+    $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
+    return $encodedParams;
 }
 
 function _drupal_nemid_login_get_settings() {
