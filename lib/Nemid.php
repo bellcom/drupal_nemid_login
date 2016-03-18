@@ -93,7 +93,6 @@ class NemidCertificateCheck {
         $x509 = new X509();
 
         $certchain = $this->xml2certs($xp, $x509);
-        #print_r($certchain);
 
         $nemidfixedpathlength = 1; # as per RFC 5280: 'maximum number of non-self-issued intermediate certificates'
 
@@ -194,8 +193,6 @@ class NemidCertificateCheck {
         {
           // hf@bellcom.dk use exception instead
           throw new Exception('Invalid signature');
-            //trigger_error('Error verifying incoming XMLsignature' . PHP_EOL
-                    //. openssl_error_string() . PHP_EOL . 'XMLsignature: ' . print_r(htmlspecialchars($message), 1), E_USER_ERROR);
         }
     }
 
@@ -363,7 +360,6 @@ class NemidCertificateCheck {
             'pid' => $pid,
             'cpr' => $cpr,
         );
-
         $element = $xp->query('/method/request')->item(0);
         $element->setAttribute("id", uniqid());
 
@@ -407,7 +403,6 @@ class NemidCertificateCheck {
         $context = stream_context_create($stream_options);
 
         $response = file_get_contents($config->server, null, $context);
-
         $document->loadXML($response);
         $xp = new \DomXPath($document);
         $status = $xp->query('/method/response/status/@statusCode')->item(0)->value;

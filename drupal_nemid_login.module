@@ -50,6 +50,7 @@ function drupal_nemid_login_block_info() {
     'info' => t('NemID login block'),
     'cache' => DRUPAL_CACHE_PER_ROLE,
   );
+
   return $blocks;
 }
 
@@ -64,15 +65,21 @@ function drupal_nemid_login_block_view($delta = '') {
   switch ($delta) {
     case 'nemid_login':
       $block['subject'] = t('NemID Login');
-      $block['content'] = theme('nemid_login_block', array('params' => _drupal_nemid_login_get_params(), 'settings' => _drupal_nemid_login_get_settings()));
-      break;
+      $block['content'] = theme('nemid_login_block', array(
+        'params' => _drupal_nemid_login_get_params(),
+        'settings' => _drupal_nemid_login_get_settings()
+      ));
+    break;
   }
 
   return $block;
 }
 
 function _drupal_nemid_login_page() {
-  return theme('nemid_login_block', array('params' => _drupal_nemid_login_get_params(), 'settings' => _drupal_nemid_login_get_settings()));
+  return theme('nemid_login_block', array(
+    'params' => _drupal_nemid_login_get_params(),
+    'settings' => _drupal_nemid_login_get_settings()
+  ));
 }
 
 /**
@@ -81,54 +88,55 @@ function _drupal_nemid_login_page() {
 function drupal_nemid_login_theme($existing, $type, $theme, $path) {
   return array(
     'nemid_login_block' => array(
-      'path'      => drupal_get_path('module', 'drupal_nemid_login').'/templates',
+      'path'      => drupal_get_path('module', 'drupal_nemid_login') . '/templates',
       'template'  => 'block',
       'variables' => array('params' => NULL, 'settings' => NULL),
     ),
   );
 }
 
-function stripCertificate($toBeStripped)
-{
-    $result = str_replace("\n", "", $toBeStripped);
-    $result = str_replace("\r", "", $result);
-    $result = str_replace("-----BEGIN CERTIFICATE-----", "", $result);
-    $result = str_replace("-----END CERTIFICATE-----", "", $result);
-    return $result;
+function stripCertificate($toBeStripped) {
+  $result = str_replace("\n", "", $toBeStripped);
+  $result = str_replace("\r", "", $result);
+  $result = str_replace("-----BEGIN CERTIFICATE-----", "", $result);
+  $result = str_replace("-----END CERTIFICATE-----", "", $result);
+
+  return $result;
 }
 
 function _drupal_nemid_login_get_params() {
-    $nemidlogin = new WAYF\nemidlogin();
-    $config = _drupal_nemid_login_get_config_object();
-    $oldParams = $nemidlogin->prepareparamsfornemid($config);
+  $nemidlogin = new WAYF\nemidlogin();
+  $config = _drupal_nemid_login_get_config_object();
+  $oldParams = $nemidlogin->prepareparamsfornemid($config);
 
-    $millisec= strval(intval(microtime(true))*1000);
+  $millisec = strval(intval(microtime(true))*1000);
 
-    $params = [
-        "SP_CERT"          => stripCertificate($oldParams['paramcert']),
-        "CLIENTFLOW"       => "OCESLOGIN2",
-        "SIGN_PROPERTIES"  => "challenge=". $millisec,
-        "TIMESTAMP"        => $millisec,
-    ];
+  $params = [
+    "SP_CERT"          => stripCertificate($oldParams['paramcert']),
+    "CLIENTFLOW"       => "OCESLOGIN2",
+    "SIGN_PROPERTIES"  => "challenge=". $millisec,
+    "TIMESTAMP"        => $millisec,
+  ];
 
-    uksort($params, "strnatcasecmp");
+  uksort($params, "strnatcasecmp");
 
-    $normalized = '';
-    foreach ($params as $name => $value) {
-        $normalized .= $name . $value;
-    }
+  $normalized = '';
+  foreach ($params as $name => $value) {
+    $normalized .= $name . $value;
+  }
 
-    $utfparams = mb_convert_encoding($normalized, "UTF-8", "auto");
-    $paramsdigest = hash('sha256', $utfparams, true);
-    $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
+  $utfparams = mb_convert_encoding($normalized, "UTF-8", "auto");
+  $paramsdigest = hash('sha256', $utfparams, true);
+  $params['PARAMS_DIGEST'] = base64_encode($paramsdigest);
 
-    $key = openssl_pkey_get_private($config->privatekey, $config->privatekeypass);
-    openssl_sign($utfparams, $signature, $key, 'sha256');
+  $key = openssl_pkey_get_private($config->privatekey, $config->privatekeypass);
+  openssl_sign($utfparams, $signature, $key, 'sha256');
 
-    $params['DIGEST_SIGNATURE'] = base64_encode($signature);
+  $params['DIGEST_SIGNATURE'] = base64_encode($signature);
 
-    $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
-    return $encodedParams;
+  $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
+
+  return $encodedParams;
 }
 
 function _drupal_nemid_login_get_settings() {
@@ -165,7 +173,7 @@ function _drupal_nemid_login_verify() {
 
       $trustedrootdigests = new StdClass();
       $trustedrootdigests->trustedrootdigests = array(
-        'preproductionCertificateOcesII'  => '0e2fd1fda36a4bf3995e28619704d60e3382c91e44a2b458ab891316380b1d50',
+	'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
       );
 
       $nemid = new WAYF\NemidCertificateCheck();
@@ -175,12 +183,12 @@ function _drupal_nemid_login_verify() {
         $subject = end($certificate['tbsCertificate']['subject']);
         $pid = $subject['serialNumber'];
         $cn = $subject['commonName'];
-
-        drupal_set_message(t('Login ok: @cn', array('@cn' => $cn)), 'success');
+        $config = _drupal_nemid_login_get_config_object();
+        $cpr = $nemid->pidCprRequest($config, $pid);
+        drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
         drupal_goto('<front>');
       }
-      catch (Exception $e)
-      {
+      catch (Exception $e) {
         echo $e->getMessage();
       }
     }
@@ -191,7 +199,8 @@ function _drupal_nemid_login_admin() {
   $form = array();
 
   $variablePrefix = 'nemid_login_';
-  $modes = array('test','live');
+  $modes = array('test', 'live');
+  $current_mode = variable_get('nemid_login_mode');
 
   $sharedFields = array(
     'certificate'           => array('type' => 'textarea', 'title' => t('Certificate')),
@@ -199,16 +208,18 @@ function _drupal_nemid_login_admin() {
     'private_key_password'  => array('type' => 'password', 'title' => t('Private key password')),
     'base_url'              => array('type' => 'textfield', 'title' => t('Base url')),
     'ui_mode'               => array('type' => 'radios', 'title' => t('UI mode'), 'options' => array('std' => t('Standard'), 'lmt' => t('Limited'))),
-    );
+    'serviceid'             => array('type' => 'textfield', 'title' => t('Service ID')),
+    'certificateandkey'     => array('type' => 'textfield', 'title' => t('Path to PEM with certificate and key')),
+  );
 
   $form[$variablePrefix.'mode'] = array(
     '#type' => 'radios',
     '#title' => t('NemID mode'),
+    '#default_value' => variable_get($variablePrefix.'mode', 'test'),
     '#options' => array(
       'live' => t('Live'),
       'test' => t('Test'),
     ),
-   '#default_value' => variable_get($variablePrefix.'mode', 'test'),
   );
 
   foreach ($modes as $mode) {
@@ -217,7 +228,7 @@ function _drupal_nemid_login_admin() {
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
-      );
+    );
     foreach ($sharedFields as $fieldKey => $field) {
       $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode] = array(
         '#type' => $field['type'],
@@ -225,6 +236,7 @@ function _drupal_nemid_login_admin() {
         '#default_value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL),
         '#required' => TRUE,
       );
+
       if ($field['type'] == 'radios') {
         $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#options'] = $field['options'];
       }
@@ -240,11 +252,20 @@ function _drupal_nemid_login_get_config_object() {
   $search  = array("\r\n", "-----BEGIN CERTIFICATE-----\n", "\n-----END CERTIFICATE-----\n");
   $replace = array("\n", "", "");
 
+  if ($mode == 'live') {
+    $server = 'https://pidws.certifikat.dk/pid_serviceprovider_server/pidxml/';
+  } else {
+    $server = 'https://pidws.pp.certifikat.dk/pid_serviceprovider_server/pidxml/';
+  }
+
   $config = new StdClass();
+  $config->server          = $server;
   $config->privatekey      = str_replace($search, $replace, variable_get($variablePrefix.'private_key_'.$mode));
   $config->privatekeypass  = variable_get($variablePrefix.'private_key_password_'.$mode);
   $config->certificate     = str_replace($search, $replace, variable_get($variablePrefix.'certificate_'.$mode));
   $config->serverurlprefix = variable_get($variablePrefix.'base_url_'.$mode);
-
+  $config->serviceid       = variable_get($variablePrefix.'serviceid_'.$mode);
+  $config->certificateandkey = variable_get($variablePrefix.'certificateandkey_'.$mode);
+ // $config->certificateandkey_str = variable_get($variablePrefix.'certificate_'.$mode) . variable_get($variablePrefix.'private_key_'.$mode);
   return $config;
 }
