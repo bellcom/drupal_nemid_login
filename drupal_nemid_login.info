@@ -3,3 +3,6 @@ description = Provides a login box for NemID
 package = Bellcom
 core = 7.x
 php = 5.2
+
+dependencies[] = securepages
+dependencies[] = webform_ssl
