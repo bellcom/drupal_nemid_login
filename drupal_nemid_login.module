@@ -273,10 +273,10 @@ function _drupal_nemid_login_get_config_object() {
 
 function drupal_nemid_login_webform_component_info() {
   $components = array();
-  $components['cpr'] = array(
-    'label' => t('CPR'),
+  $components['nemid_cpr'] = array(
+    'label' => t('NemID CPR'),
     'description' => t('Create CPR field.'),
-    'name' => 'cpr',
+    'name' => 'nemid_cpr',
     'form_key' => NULL,
     'pid' => 0,
     'weight' => 0,
@@ -295,7 +295,31 @@ function drupal_nemid_login_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
     ),
-    'file' => 'components/cpr.inc',
+    'file' => 'components/nemid_cpr.inc',
+  );
+  $components['nemid_name'] = array(
+    'label' => t('NemID Name'),
+    'description' => t('Create NemID name field.'),
+    'name' => 'nemid_name',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => FALSE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_name.inc',
   );
   return $components;
 }
