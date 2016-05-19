@@ -17,8 +17,8 @@ function _webform_defaults_nemid_name() {
     'value' => '',
     'required' => 0,
     'extra' => array(
-      'width' => '10',
-      'maxlength' => '10',
+      'width' => '',
+      'maxlength' => '',
       'disabled' => 0,
       'unique' => 0,
       'title_display' => 0,

@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Webform module NemID CPR component.
+ * Webform module NemID C/O address component.
  */
 
 /**
  * Implements _webform_defaults_component().
  */
-function _webform_defaults_nemid_cpr() {
+function _webform_defaults_nemid_coaddress() {
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -18,14 +18,14 @@ function _webform_defaults_nemid_cpr() {
     'required' => 0,
     'extra' => array(
       'width' => '',
-      'maxlength' => '10',
+      'maxlength' => '',
       'disabled' => 0,
       'unique' => 0,
       'title_display' => 0,
       'description' => '',
-      'placeholder' => '070593-1234',
+      'placeholder' => '',
       'attributes' => array(),
-      'private' => TRUE,
+      'private' => FALSE,
       'analysis' => FALSE,
     ),
   );
@@ -34,7 +34,7 @@ function _webform_defaults_nemid_cpr() {
 /**
  * Implements _webform_edit_component().
  */
-function _webform_edit_nemid_cpr($component) {
+function _webform_edit_nemid_coaddress($component) {
   $form = array();
   $form['value'] = array(
     '#type' => 'textfield',
@@ -68,7 +68,7 @@ function _webform_edit_nemid_cpr($component) {
 /**
  * Implements _webform_render_component().
  */
-function _webform_render_nemid_cpr($component, $value = NULL, $filter = TRUE, $submission = NULL) {
+function _webform_render_nemid_coaddress($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $element = array(
@@ -126,12 +126,12 @@ function _webform_render_nemid_cpr($component, $value = NULL, $filter = TRUE, $s
 /**
  * Implements _webform_display_component().
  */
-function _webform_display_nemid_cpr($component, $value, $format = 'html', $submission = array()) {
+function _webform_display_nemid_coaddress($component, $value, $format = 'html', $submission = array()) {
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
-    '#theme' => 'webform_display_nemid_cpr',
+    '#theme' => 'webform_display_nemid_coaddress',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#field_prefix' => $component['extra']['field_prefix'],
     '#field_suffix' => $component['extra']['field_suffix'],
@@ -144,7 +144,7 @@ function _webform_display_nemid_cpr($component, $value, $format = 'html', $submi
 /**
  * Format the output of data for this component.
  */
-function theme_webform_display_nemid_cpr($variables) {
+function theme_webform_display_nemid_coaddress($variables) {
   $element = $variables['element'];
   $prefix = $element['#format'] == 'html' ? '' : $element['#field_prefix'];
   $suffix = $element['#format'] == 'html' ? '' : $element['#field_suffix'];
@@ -155,7 +155,7 @@ function theme_webform_display_nemid_cpr($variables) {
 /**
  * Implements _webform_analysis_component().
  */
-function _webform_analysis_nemid_cpr($component, $sids = array(), $single = FALSE, $join = NULL) {
+function _webform_analysis_nemid_coaddress($component, $sids = array(), $single = FALSE, $join = NULL) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
     ->fields('wsd', array('data'))
     ->condition('wsd.nid', $component['nid'])
@@ -196,14 +196,14 @@ function _webform_analysis_nemid_cpr($component, $sids = array(), $single = FALS
 /**
  * Implements _webform_table_component().
  */
-function _webform_table_nemid_cpr($component, $value) {
+function _webform_table_nemid_coaddress($component, $value) {
   return check_plain(empty($value[0]) ? '' : $value[0]);
 }
 
 /**
  * Implements _webform_action_set_component().
  */
-function _webform_action_set_nemid_cpr($component, &$element, &$form_state, $value) {
+function _webform_action_set_nemid_coaddress($component, &$element, &$form_state, $value) {
   $element['#value'] = $value;
   form_set_value($element, $value, $form_state);
 }
@@ -211,7 +211,7 @@ function _webform_action_set_nemid_cpr($component, &$element, &$form_state, $val
 /**
  * Implements _webform_csv_headers_component().
  */
-function _webform_csv_headers_nemid_cpr($component, $export_options) {
+function _webform_csv_headers_nemid_coaddress($component, $export_options) {
   $header = array();
   $header[0] = '';
   $header[1] = '';
@@ -222,6 +222,6 @@ function _webform_csv_headers_nemid_cpr($component, $export_options) {
 /**
  * Implements _webform_csv_data_component().
  */
-function _webform_csv_data_nemid_cpr($component, $export_options, $value) {
+function _webform_csv_data_nemid_coaddress($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];
 }
