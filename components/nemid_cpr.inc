@@ -53,15 +53,6 @@ function _webform_edit_nemid_cpr($component) {
     '#weight' => 1,
     '#parents' => array('extra', 'placeholder'),
   );
-  $form['display']['disabled'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Disabled'),
-    '#return_value' => 1,
-    '#description' => t('Make this field non-editable. Useful for setting an unchangeable default value.'),
-    '#weight' => 11,
-    '#default_value' => $component['extra']['disabled'],
-    '#parents' => array('extra', 'disabled'),
-  );
   return $form;
 }
 

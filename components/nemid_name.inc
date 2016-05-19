@@ -45,6 +45,15 @@ function _webform_edit_nemid_name($component) {
     '#maxlength' => 1024,
     '#weight' => 0,
   );
+  $form['get_from_cpr'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get from CPR'),
+    '#return_value' => 1,
+    '#description' => t('Get data from CPR and disable if data is available.'),
+    '#weight' => 1,
+    '#default_value' => $component['extra']['get_from_cpr'],
+    '#parents' => array('extra', 'get_from_cpr'),
+  );
   $form['display']['placeholder'] = array(
     '#type' => 'textfield',
     '#title' => t('Placeholder'),
@@ -52,15 +61,6 @@ function _webform_edit_nemid_name($component) {
     '#description' => t('The placeholder will be shown in the field until the user starts entering a value.'),
     '#weight' => 1,
     '#parents' => array('extra', 'placeholder'),
-  );
-  $form['display']['disabled'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Disabled'),
-    '#return_value' => 1,
-    '#description' => t('Make this field non-editable. Useful for setting an unchangeable default value.'),
-    '#weight' => 11,
-    '#default_value' => $component['extra']['disabled'],
-    '#parents' => array('extra', 'disabled'),
   );
   return $form;
 }
@@ -94,7 +94,7 @@ function _webform_render_nemid_name($component, $value = NULL, $filter = TRUE, $
     $element['#attributes']['placeholder'] = $component['extra']['placeholder'];
   }
 
-  if ($component['extra']['disabled']) {
+  if ($component['extra']['get_from_cpr']) {
     if ($filter) {
       $element['#attributes']['readonly'] = 'readonly';
     }
