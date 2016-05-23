@@ -6,3 +6,4 @@ php = 5.2
 
 dependencies[] = securepages
 dependencies[] = webform_ssl
+dependencies[] = webform_encrypt
