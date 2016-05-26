@@ -39,7 +39,7 @@ function _webform_edit_nemid_cpr($component) {
   $form['value'] = array(
     '#type' => 'textfield',
     '#title' => t('Default value'),
-    '#default_value' => !empty($_SESSION['nemid_login']['cpr']) ? $_SESSION['nemid_login']['cpr'] : $component['value'],
+    '#default_value' => $component['value'],
     '#description' => t('The default value of the field.') . ' ' . theme('webform_token_help'),
     '#size' => 60,
     '#maxlength' => 1024,

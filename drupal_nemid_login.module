@@ -185,7 +185,8 @@ function _drupal_nemid_login_verify() {
         $cn = $subject['commonName'];
         $config = _drupal_nemid_login_get_config_object();
         $cpr = $nemid->pidCprRequest($config, $pid);
-        $_SESSION['nemid_login']['cpr'] = $cpr;
+        drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
+        drupal_goto('<front>');
       }
       catch (Exception $e) {
         echo $e->getMessage();
