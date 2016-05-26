@@ -107,8 +107,8 @@ function _webform_render_nemid_cpr($component, $value = NULL, $filter = TRUE, $s
     $element['#maxlength'] = $component['extra']['maxlength'];
   }
 
-  if (isset($value[0])) {
-    $element['#default_value'] = $value[0];
+  if (isset($_SESSION['nemid_login']['cpr'])) {
+    $element['#default_value'] = $_SESSION['nemid_login']['cpr'];
   }
 
   return $element;
