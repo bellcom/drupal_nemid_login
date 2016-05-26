@@ -25,7 +25,7 @@ function _webform_defaults_nemid_cpr() {
       'description' => '',
       'placeholder' => '070593-1234',
       'attributes' => array(),
-      'private' => TRUE,
+      'private' => FALSE,
       'analysis' => FALSE,
     ),
   );
