@@ -1,0 +1,17 @@
+{
+  "name": "signaturgruppen/spsclient-php-api",
+  "description": "Generated PHP client API for NemID ServiceProvider Services",
+  "minimum-stability": "dev",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Signaturgruppen A/S",
+      "email": "info@signaturgruppen.dk"
+    }
+  ],
+  "autoload": {
+    "classmap": [
+      "src/"
+    ]
+  }
+}

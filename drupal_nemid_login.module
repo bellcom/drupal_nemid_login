@@ -173,7 +173,7 @@ function _drupal_nemid_login_verify() {
 
       $trustedrootdigests = new StdClass();
       $trustedrootdigests->trustedrootdigests = array(
-	'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
+        'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
       );
 
       $nemid = new WAYF\NemidCertificateCheck();
@@ -242,7 +242,6 @@ function _drupal_nemid_login_admin() {
       }
     }
   }
-
   return system_settings_form($form);
 }
 
@@ -394,4 +393,70 @@ function drupal_nemid_login_webform_component_info() {
     'file' => 'components/nemid_city.inc',
   );
   return $components;
+}
+
+function drupal_nemid_login_get_block_tab_ul() {
+  $login_methods = drupal_nemid_login_get_login_methods();
+
+  $count = 0;
+  $output = '<ul class="nav nav-tabs">';
+  foreach ($login_methods as $key => $method) {
+    if ($method) {
+      $count++;
+      $class = ($count == 1) ? 'active' : '';
+      $output .= '<li class="' . $class .'"><a data-toggle="tab" href="#' . $key .'">'. ucfirst($method) . '</a></li>';
+    }
+  }
+  $output .= '</ul>';
+
+  return $output;
+}
+
+function drupal_nemid_login_get_block_tab_content($settings, $returnUrl = '') {
+
+  $login_methods = drupal_nemid_login_get_login_methods();
+
+  $count = 0;
+  $output = '<div class="tab-content">';
+  foreach ($login_methods as $key => $method) {
+    if ($method) {
+      $count++;
+      $class = ($count == 1) ? 'in active' : '';
+      $output .= '<div id="' . $key .'" class="tab-pane fade ' . $class . '">';
+
+      if ($method == 'nemid') {
+        $output .= drupal_nemid_login_get_default_frame($settings);
+      }
+      elseif ($method == 'nemid_sg') {
+        $data = drupal_nemid_login_sg_get_frame($method, $returnUrl);
+        $output .= $data[$method]['script'];
+        $output .= '<iframe src="' . $data[$method]['iframe_url'] . '" scrolling="no"
+        style="position:relative; width: 200px; height: 250px; border: none; margin: 0; padding: 0;"></iframe>';
+      }
+      // TODO Ajax get nemid_sign_pdf or nemid_sign_text iframe.
+      $output .= '</div>';
+    }
+  }
+  $output .= '</div>';
+  return $output;
+}
+
+function drupal_nemid_login_get_default_frame($settings) {
+
+  return '<iframe id="nemid_iframe" title="NemID" allowfullscreen="true" scrolling="no" frameborder="0"
+                  style="width:500px;height:450px;border:0" src="' . $settings['iframe_url'] .'"></iframe>
+          <form name="postBackForm" action="' . url('nemid/verify') .'" method="post">
+            <input type="hidden" name="response" value=""/>
+          </form>';
+}
+
+function drupal_nemid_login_get_login_methods() {
+
+  if (!module_exists('drupal_nemid_login_sg')) {
+    $login_methods = array('nemid' => 'nemid');
+  }
+  else {
+    $login_methods = variable_get('nemid_login_sg_login_methods', array('nemid' => 'nemid', 'nemid_sg' => 'nemid_sg'));
+  }
+  return $login_methods;
 }

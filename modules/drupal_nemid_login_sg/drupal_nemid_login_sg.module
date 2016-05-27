@@ -1,0 +1,224 @@
+<?php
+/**
+ * @file
+ * Based on https://authentication.signaturgruppen.dk which is under signaturgruppen.dk licences
+ * The following documents where used to implement the Javascript client:
+ * - https://authentication.signaturgruppen.dk/Home/Documentation
+ * @author Yani Xu <yx@bellcom.dk>
+ */
+
+require_once __DIR__ . '/vendor/autoload.php';
+include(dirname(__FILE__) . '/vendor/signaturgruppen/spsclient-php/src/Configuration/Config.php');
+
+
+/**
+ * Implements hook_menu().
+ */
+function drupal_nemid_login_sg_menu() {
+  $items['nemid_sg/verify'] = array(
+    'title'            => t('NemID Signaturgruppen login verify'),
+    'page callback'    => '_drupal_nemid_login_sg_verify',
+    'page arguments'   => array(),
+    'access arguments' => array('access content'),
+    'type'             => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function _drupal_nemid_login_sg_verify() {
+  if ( isset($_POST['result']) ) {
+
+    $result = $_POST["result"];
+    $config =  drupal_nemid_login_sg_get_params();
+    Signaturgruppen\SPS\Configuration\Config::setDefaultConfigJson($config);
+
+    $validator = new \Frame\NemIDFlowValidator();
+    $flowResult = $validator->validate($result);
+
+    if (!$flowResult->IsSuccess) {
+      drupal_set_message(t('Login failed: @message', array('@message' => $flowResult->Message)), 'error');
+    }
+    if (isset($flowResult->AuthenticationInfo)) {
+      $subject = $flowResult->AuthenticationInfo;
+      $pid = $subject->Pid;
+      $cn = $subject->CommonName;
+      $cpr = $subject->Cpr;
+      //
+      drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
+
+      global $user;
+
+      if (user_is_logged_in()) {
+        $_SESSION['nemid_login']['cpr'] = $cpr;
+        if (!field_get_items('user', $user, 'field_nemid_pid')) {
+          $user->field_nemid_pid[LANGUAGE_NONE][0]['value'] = $pid;
+          user_save($user);
+          drupal_set_message(t('Added pid @pid to user nemid_pid', array("@pid" => $pid)), 'success');
+          drupal_goto('user');
+        }
+      }
+      else {
+        $uid = drupal_nemid_login_sg_get_drupal_user_by_pid($pid);
+        if (!$uid) {
+          //set up the user fields
+          $fields = array(
+            'name' => $pid,
+            'mail' => '',
+            'pass' => $pid,
+            'status' => 1,
+            'init' => 'email address',
+            'roles' => array(
+              DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+            ),
+            'field_nemid_pid' =>
+                        array(LANGUAGE_NONE =>
+                        array(0 =>
+                        array('value' => $pid))),
+          );
+
+          //the first parameter is left blank so a new user is created
+          $account = user_save(NULL, $fields);
+          $user = user_load($account->uid);
+          drupal_set_message(t('Current password is your pid: @pid, please change it.', array("@pid" => $pid)), 'error');
+          drupal_set_message(t('Please add your email address'), 'success');
+          drupal_session_regenerate();
+          $_SESSION['nemid_login']['cpr'] = $cpr;
+
+          drupal_goto('user/' . $user->uid . '/edit');
+        }
+        else {
+          $user = user_load($uid);
+          drupal_session_regenerate();
+          $_SESSION['nemid_login']['cpr'] = $cpr;
+          drupal_goto('<front>');
+        }
+      }
+    }
+    else {
+      drupal_set_message(t('Login failed: Exception has been thrown by the target of an invocation'), 'error');
+      drupal_goto('<front>');
+    }
+  }
+}
+
+function drupal_nemid_login_sg_get_params() {
+
+  $variablePrefix = 'nemid_login_sg_';
+  $mode = variable_get($variablePrefix . 'mode');
+
+  $params = [
+    "Name"                       => variable_get($variablePrefix . 'name_' . $mode),
+    "Guid"                       => variable_get($variablePrefix . 'guid_' . $mode),
+    "Pkcs12Encoded"              => variable_get($variablePrefix . 'pkcs12Encoded_' . $mode),
+    "BackendCertificateEncoded"  => variable_get($variablePrefix . 'backendCertificateEncoded_' . $mode),
+    "BackendUrl"                 => variable_get($variablePrefix . 'backendUrl_' . $mode),
+  ];
+
+
+  $encodedParams = json_encode($params, JSON_UNESCAPED_SLASHES);
+
+  return $encodedParams;
+}
+function drupal_nemid_login_sg_get_frame($method = 'nemid_sg', $returnUrl = '') {
+  $config =  drupal_nemid_login_sg_get_params();
+  Signaturgruppen\SPS\Configuration\Config::setDefaultConfigJson($config);
+  switch ($method){
+    case 'nemid_sg':
+      $nemid = new \Signaturgruppen\SPS\Frame\NemIDFrameBuilder();
+      $script = $nemid->buildScript($returnUrl);
+      break;
+
+    case 'nemid_sign_pdf':
+      $nemid = new \Signaturgruppen\SPS\Frame\NemIDSignFrameBuilder();
+      $script = $nemid->signPdf(file_get_contents(dirname(__FILE__) . "/sample.pdf"))->buildScript("receive.php");
+      break;
+
+    case 'nemid_sign_text':
+      $nemid = new \Signaturgruppen\SPS\Frame\NemIDSignFrameBuilder();
+      $script = $nemid->signText("Agreement\n\nAgreement text")->buildScript($returnUrl);
+      break;
+
+  }
+  $data[$method] = array(
+    'nemid' => $nemid,
+    'iframe_url' => $nemid->getFrameUrl(),
+    'script' => $script,
+
+  );
+  return $data;
+
+
+}
+
+function drupal_nemid_login_sg_form__drupal_nemid_login_admin_alter(&$form, $form_states, $form_id) {
+  $variablePrefix = 'nemid_login_sg_';
+
+  $modes = array('test', 'live');
+
+  $sharedFields = array(
+    'name'                      => array('type' => 'textfield', 'title' => t('Name')),
+    'guid'                      => array('type' => 'textfield', 'title' => t('Guid')),
+    'pkcs12Encoded'             => array('type' => 'textarea', 'title' => t('Pkcs12Encoded')),
+    'backendCertificateEncoded' => array('type' => 'textarea', 'title' => t('BackendCertificateEncoded')),
+    'backendUrl'                => array('type' => 'textfield', 'title' => t('BackendUrl')),
+  );
+
+  $form[$variablePrefix.'mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('NemID signaturgruppen mode'),
+    '#default_value' => variable_get($variablePrefix.'mode', 'test'),
+    '#options' => array(
+      'live' => t('Live'),
+      'test' => t('Test'),
+    ),
+  );
+
+  foreach ($modes as $mode) {
+    $form[$variablePrefix.$mode] = array(
+      '#title' => t('Settings for '. $mode.' mode'),
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    foreach ($sharedFields as $fieldKey => $field) {
+      $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode] = array(
+        '#type' => $field['type'],
+        '#title' => $field['title'],
+        '#default_value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL),
+        //'#required' => TRUE,
+      );
+
+    }
+    $form[$variablePrefix.$mode][$variablePrefix.'signPdf_'.$mode] = array(
+      '#type' => 'textfield',
+      '#title' => t('Path to sign PDF file'),
+      '#default_value' => variable_get($variablePrefix.'signPdf_'.$mode, ''),
+      //'#required' => TRUE,
+    );
+  }
+  $default_methods = array(
+                    'nemid' => 'nemid',
+                    'nemid_sg' => 'nemid_sg',
+                    'nemid_sign_pdf' => '',
+                    'nemid_sign_text' => '');
+
+  $form[$variablePrefix . 'login_methods'] = array(
+    '#title' => t('Valg login mmetode(r)'),
+    '#type' => 'checkboxes',
+    '#options' => array(
+                    'nemid' => 'NemId',
+                    'nemid_sg' => 'NemId Signaturgruppen',
+                    'nemid_sign_pdf' => 'NemId sign PDF',
+                    'nemid_sign_text' => 'NemId sign Text'),
+    '#default_value' => variable_get($variablePrefix . 'login_methods', $default_methods),
+  );
+}
+
+function drupal_nemid_login_sg_get_drupal_user_by_pid($pid) {
+  $result = db_query("SELECT COUNT(*) FROM {field_data_field_nemid_pid} WHERE field_nemid_pid_value = :pid", array(':pid' => $pid))->fetchField();
+  if ($result == 0) {
+    // User doesn't exist
+    return FALSE;
+  }
+  return db_query("SELECT entity_id FROM {field_data_field_nemid_pid} WHERE field_nemid_pid_value = :pid", array(':pid' => $pid))->fetchField();
+}

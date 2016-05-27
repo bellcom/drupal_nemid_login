@@ -26,21 +26,18 @@
      window.attachEvent("onmessage", onNemIDMessage);
  }
 </script>
+<?php
+  echo drupal_nemid_login_get_block_tab_ul();
+?>
 
 <?php
 if (!isset($_SESSION['nemid_login']['errors'])) {
-?>
-
-<iframe id="nemid_iframe" title="NemID" allowfullscreen="true" scrolling="no" frameborder="0" style="width:500px;height:450px;border:0" src="<?php echo $settings['iframe_url']; ?>"></iframe>
-
-<form name="postBackForm" action="<?php echo url('nemid/verify');?>" method="post">
-  <input type="hidden" name="response" value=""/>
-</form>
-
-<?php
+  $returnUrl = 'nemid_sg/verify';
+  echo drupal_nemid_login_get_block_tab_content($settings, $returnUrl);
 }
 else
 {
+  print_r($_SESSION['nemid_login']['errors']);
   echo t("There was a problem the NemID client");
 }
 ?>

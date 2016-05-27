@@ -1,0 +1,7 @@
+name = Drupal NemID Login - Signaturgruppen
+description = Provides a login box for NemID ved Signaturgruppen
+package = Bellcom
+core = 7.x
+php = 5.2
+
+dependencies[] = drupal_nemid_login
