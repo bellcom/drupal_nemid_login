@@ -32,7 +32,7 @@
 
 <?php
 if (!isset($_SESSION['nemid_login']['errors'])) {
-  $returnUrl = 'nemid_sg/verify';
+  $returnUrl = '/nemid_sg/verify';
   echo drupal_nemid_login_get_block_tab_content($settings, $returnUrl);
 }
 else
