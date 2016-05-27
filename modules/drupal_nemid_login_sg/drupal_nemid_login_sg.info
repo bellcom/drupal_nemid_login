@@ -5,3 +5,4 @@ core = 7.x
 php = 5.2
 
 dependencies[] = drupal_nemid_login
+dependencies[] = drupal_nemid_login_user_pid_field

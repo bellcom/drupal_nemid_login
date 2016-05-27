@@ -1,0 +1,12 @@
+name = drupal_nemid_login_user_pid_field
+description = User nemid pid field
+core = 7.x
+package = Features
+version = 7.x-1.0
+project = drupal_nemid_login_user_pid_field
+dependencies[] = features
+dependencies[] = text
+features[features_api][] = api:2
+features[field_base][] = field_nemid_pid
+features[field_instance][] = user-user-field_nemid_pid
+project path = sites/all/modules/drupal_nemid_login/modules
