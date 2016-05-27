@@ -64,11 +64,14 @@ function drupal_nemid_login_block_view($delta = '') {
   $block = array();
   switch ($delta) {
     case 'nemid_login':
-      $block['subject'] = t('NemID Login');
-      $block['content'] = theme('nemid_login_block', array(
-        'params' => _drupal_nemid_login_get_params(),
-        'settings' => _drupal_nemid_login_get_settings()
-      ));
+      Global $user;
+      if($user->uid == '0' || drupal_nemid_login_check_user_pid()) {
+        $block['subject'] = t('NemID Login');
+        $block['content'] = theme('nemid_login_block', array(
+          'params' => _drupal_nemid_login_get_params(),
+          'settings' => _drupal_nemid_login_get_settings()
+        ));
+      }
     break;
   }
 
@@ -459,4 +462,15 @@ function drupal_nemid_login_get_login_methods() {
     $login_methods = variable_get('nemid_login_sg_login_methods', array('nemid' => 'nemid', 'nemid_sg' => 'nemid_sg'));
   }
   return $login_methods;
+}
+
+function drupal_nemid_login_check_user_pid() {
+  global $user;
+  $user = user_load($user->uid);
+  if ($pid = field_get_items('user', $user, 'field_nemid_pid')) {
+    if ($pid[0]['value']) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
