@@ -19,7 +19,7 @@ function drupal_nemid_login_sg_menu() {
     'title'            => t('NemID Signaturgruppen login verify'),
     'page callback'    => '_drupal_nemid_login_sg_verify',
     'page arguments'   => array(),
-    'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type'             => MENU_CALLBACK,
   );
   return $items;
@@ -50,9 +50,13 @@ function _drupal_nemid_login_sg_verify() {
 
       if (user_is_logged_in()) {
         $_SESSION['nemid_login']['cpr'] = $cpr;
+        $account = user_load($user->uid);
         if (!field_get_items('user', $user, 'field_nemid_pid')) {
-          $user->field_nemid_pid[LANGUAGE_NONE][0]['value'] = $pid;
-          user_save($user);
+
+          $edit = array();
+          $edit['field_nemid_pid'][LANGUAGE_NONE][0]['value'] = $pid;
+          user_save($account, $edit);
+
           drupal_set_message(t('Added pid @pid to user nemid_pid', array("@pid" => $pid)), 'success');
           drupal_goto('user');
         }
@@ -61,30 +65,37 @@ function _drupal_nemid_login_sg_verify() {
         $uid = drupal_nemid_login_sg_get_drupal_user_by_pid($pid);
         if (!$uid) {
           //set up the user fields
-          $fields = array(
+          $new_user = array(
             'name' => $pid,
-            'mail' => '',
+            'mail' => 'test@test.dk',
             'pass' => $pid,
             'status' => 1,
-            'init' => 'email address',
+            'init' => 'test@test.dk',
             'roles' => array(
               DRUPAL_AUTHENTICATED_RID => 'authenticated user',
             ),
+            'field_fornavn' => array(LANGUAGE_NONE =>
+                        array(0 =>
+                        array('value' => $pid))),
+            'field_efternavn' => array(LANGUAGE_NONE =>
+                        array(0 =>
+                        array('value' => $pid))),
             'field_nemid_pid' =>
                         array(LANGUAGE_NONE =>
                         array(0 =>
                         array('value' => $pid))),
+            'access' => REQUEST_TIME,
           );
 
           //the first parameter is left blank so a new user is created
-          $account = user_save(NULL, $fields);
-          $user = user_load($account->uid);
+          $account = user_save(null, $new_user);
+ 
           drupal_set_message(t('Current password is your pid: @pid, please change it.', array("@pid" => $pid)), 'error');
           drupal_set_message(t('Please add your email address'), 'success');
           drupal_session_regenerate();
           $_SESSION['nemid_login']['cpr'] = $cpr;
-
-          drupal_goto('user/' . $user->uid . '/edit');
+          $user = user_load($account->uid);
+          drupal_goto('user/' . $account->uid . '/edit');
         }
         else {
           $user = user_load($uid);

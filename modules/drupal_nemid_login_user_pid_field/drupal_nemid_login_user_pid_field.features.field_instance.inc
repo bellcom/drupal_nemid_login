@@ -10,7 +10,7 @@
 function drupal_nemid_login_user_pid_field_field_default_field_instances() {
   $field_instances = array();
 
-  // Exported field_instance: 'user-user-field_nemid_pid'
+  // Exported field_instance: 'user-user-field_nemid_pid'.
   $field_instances['user-user-field_nemid_pid'] = array(
     'bundle' => 'user',
     'default_value' => NULL,
