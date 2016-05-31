@@ -43,13 +43,15 @@ function _drupal_nemid_login_sg_verify() {
       $pid = $subject->Pid;
       $cn = $subject->CommonName;
       $cpr = $subject->Cpr;
-      //
+      $transactionIdentifier = $flowResult->TransactionIdentifier;
+
       drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
 
       global $user;
 
       if (user_is_logged_in()) {
         $_SESSION['nemid_login']['cpr'] = $cpr;
+        $_SESSION["TransactionIdentifier"] = $transactionIdentifier;
         $account = user_load($user->uid);
         if (!field_get_items('user', $user, 'field_nemid_pid')) {
 
@@ -94,6 +96,7 @@ function _drupal_nemid_login_sg_verify() {
           drupal_set_message(t('Please add your email address'), 'success');
           drupal_session_regenerate();
           $_SESSION['nemid_login']['cpr'] = $cpr;
+          $_SESSION["TransactionIdentifier"] = $transactionIdentifier;
           $user = user_load($account->uid);
           drupal_goto('user/' . $account->uid . '/edit');
         }
@@ -101,6 +104,7 @@ function _drupal_nemid_login_sg_verify() {
           $user = user_load($uid);
           drupal_session_regenerate();
           $_SESSION['nemid_login']['cpr'] = $cpr;
+          $_SESSION["TransactionIdentifier"] = $transactionIdentifier;
           drupal_goto('<front>');
         }
       }
