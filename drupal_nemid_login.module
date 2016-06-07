@@ -237,7 +237,7 @@ function _drupal_nemid_login_admin() {
         '#type' => $field['type'],
         '#title' => $field['title'],
         '#default_value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL),
-        '#required' => TRUE,
+        //'#required' => TRUE,
       );
 
       if ($field['type'] == 'radios') {
