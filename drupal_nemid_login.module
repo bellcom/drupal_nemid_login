@@ -85,14 +85,21 @@ function _drupal_nemid_login_page() {
 /**
  * Implements hook_theme().
  */
-function drupal_nemid_login_theme($existing, $type, $theme, $path) {
+function drupal_nemid_login_theme(&$existing, $type, $theme, $path) {
   return array(
     'nemid_login_block' => array(
       'path'      => drupal_get_path('module', 'drupal_nemid_login') . '/templates',
       'template'  => 'block',
       'variables' => array('params' => NULL, 'settings' => NULL),
     ),
+    'webform_view' => array(
+      //'render element' => 'content',
+      //'base hook' => 'node',
+      'function' => 'drupal_nemid_login_webform_view',
+      'theme path' => drupal_get_path('module', 'drupal_nemid_login'),
+    ),
   );
+
 }
 
 function stripCertificate($toBeStripped) {
@@ -157,6 +164,7 @@ function _drupal_nemid_login_get_settings() {
 
 function _drupal_nemid_login_verify() {
   $DISABLE_OCSP_CHECK = TRUE;
+  $message = '';
 
   if ( isset($_POST['response']) ) {
     require dirname(__FILE__).'/lib/nemid-error-codes.php';
@@ -166,33 +174,45 @@ function _drupal_nemid_login_verify() {
       drupal_set_message(t($errorcodes[$response]['description']), 'error');
       $_SESSION['nemid_login'] = array();
       $_SESSION['nemid_login']['errors'] = $errorcodes[$response];
-      drupal_goto('<front>');
+      if (arg(0) == 'nemid' && arg(1) == 'verify') {
+        drupal_goto('<front>');
+      }
     }
     else {
       $_SESSION['nemid_login'] = array();
 
       $trustedrootdigests = new StdClass();
       $trustedrootdigests->trustedrootdigests = array(
-	'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
+        'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
       );
 
       $nemid = new WAYF\NemidCertificateCheck();
       try
       {
+
         $certificate = $nemid->checkAndReturnCertificate($_POST['response'], FALSE, $trustedrootdigests, $DISABLE_OCSP_CHECK);
         $subject = end($certificate['tbsCertificate']['subject']);
         $pid = $subject['serialNumber'];
         $cn = $subject['commonName'];
         $config = _drupal_nemid_login_get_config_object();
         $cpr = $nemid->pidCprRequest($config, $pid);
-        $_SESSION['nemid_login']['cpr'] = $cpr;
         drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
-        drupal_goto('<front>');
+
+        // Use serviceplatform to get address and other info.
+        if (variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
+          $message = vcv_serviceplatformen_get_address($cpr);
+
+        }
+        if (arg(0) == 'nemid' && arg(1) == 'verify') {
+          drupal_goto('<front>');
+        }
+
       }
       catch (Exception $e) {
         echo $e->getMessage();
       }
     }
+    return $message;
   }
 }
 
@@ -242,6 +262,27 @@ function _drupal_nemid_login_admin() {
         $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#options'] = $field['options'];
       }
     }
+  }
+  $form['serviceplatformen'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Serviceplatformen - CPR Validator, Addresse')
+  );
+  if (module_exists('vcv_serviceplatformen')) {
+    $form['serviceplatformen']['use_serviceplatform_to_get_address'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use serviceplatform CPR Validator service to fetch address by CPR no.'),
+      '#default_value' => variable_get('use_serviceplatform_to_get_address', 0),
+    );
+    $form['serviceplatformen']['vcv_serviceplatformen_help_text'] = array(
+      '#type' => 'item',
+      '#markup' => '<a href="/admin/valghalla/validator/vcv_serviceplatformen">' .t('Indstillinger') . '</a>',
+    );
+  }
+  else {
+    $form['serviceplatformen']['vcv_serviceplatformen_help_text'] = array(
+      '#type' => 'item',
+      '#markup' => t('* Install CPR Validator service: Serviceplatformen module <b>(vcv_serviceplatformen)</b> to fetch address by CPR no.'),
+    );
   }
 
   return system_settings_form($form);
@@ -394,5 +435,111 @@ function drupal_nemid_login_webform_component_info() {
     ),
     'file' => 'components/nemid_city.inc',
   );
+
   return $components;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'webform_configure_form':
+
+      $form['advanced']['nemid_login_block_enable_' . $form['nid']['#value']] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Include nemid login block'),
+        '#default_value' => variable_get('nemid_login_block_enable_' . $form['nid']['#value'], 0),
+      );
+      $form['#submit'][] = 'drupal_nemid_login_webform_configure_save';
+      break;
+
+    case strstr($form_id, 'webform_client_form'):
+
+      break;
+  }
+}
+/**
+ * Save webform configuration
+ */
+function drupal_nemid_login_webform_configure_save($form, &$form_state) {
+  $login_block_enable = 0;
+  $login_block_enable = $form_state['values']['nemid_login_block_enable_' . $form['nid']['#value']];
+  variable_set('nemid_login_block_enable_' . $form['nid']['#value'], $login_block_enable);
+
+}
+
+/**
+ * Webform_view theme function.
+ */
+function drupal_nemid_login_webform_view($variables) {
+  // Destroy the session if there is an error, get login block again.
+  if (isset($_SESSION['nemid_login']['errors'])) {
+    session_destroy();
+  }
+  $block = '';
+  $nid = $variables['webform']['#node']->nid;
+  if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']))) {
+    $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
+    $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
+    $block = drupal_render($output);
+  }
+  elseif (isset($_POST['response'])) {
+    _drupal_nemid_login_set_address_to_fields($variables);
+  }
+  if ($variables['webform']['#enabled']) {
+    return $block . drupal_render($variables['webform']['#form']);
+  }
+}
+
+/**
+ * Set address to webform fields.
+ */
+function _drupal_nemid_login_set_address_to_fields(&$variables) {
+  // Get address from serverplatformen by CPR request.
+  $message = _drupal_nemid_login_verify();
+
+  if ($message['status']) {
+
+    $webform = $variables['webform']['#form']['submitted'];
+    foreach ($webform as $key => $item) {
+      if (isset($item['#webform_component'])) {
+        switch($item['#webform_component']['type']) {
+          case 'nemid_address':
+            $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
+            $webform[$key]['#value'] = $address_text;
+            $webform[$key]['#default_value'] = $address_text;
+            if ($message['road'] != '') {
+              $webform[$key]['#attributes']['readonly'] = 'readonly';
+            }
+            break;
+
+          case 'nemid_coaddress':
+            $webform[$key]['#value'] = $message['coname'];
+            $webform[$key]['#default_value'] = $message['coname'];
+            if ($message['coname'] != '') {
+              $webform[$key]['#attributes']['readonly'] = 'readonly';
+            }
+            break;
+
+          case 'nemid_name':
+            $webform[$key]['#value'] = $message['name'] ;
+            $webform[$key]['#default_value'] = $message['name'] ;
+            if ($message['name'] != '') {
+              $webform[$key]['#attributes']['readonly'] = 'readonly';
+            }
+            break;
+
+          case 'nemid_city':
+            $webform[$key]['#value'] = $message['zipcode'] . ' ' . $message['city'] ;
+            if ($message['zipcode'] != '') {
+              $webform[$key]['#attributes']['readonly'] = 'readonly';
+            }
+            break;
+        }
+      }
+    }
+
+    $variables['webform']['#form']['submitted'] = $webform;
+  }
 }

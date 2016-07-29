@@ -15,8 +15,8 @@
      }
 
      if (message.command === "changeResponseAndSubmit") {
-         document.postBackForm.response.value = message.content;
-         document.postBackForm.submit();
+          document.postBackForm.response.value = message.content;
+          document.postBackForm.submit();
      }
  }
 
@@ -28,12 +28,29 @@
 </script>
 
 <?php
+
 if (!isset($_SESSION['nemid_login']['errors'])) {
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $nid = arg(1);
+  }
+
 ?>
 
 <iframe id="nemid_iframe" title="NemID" allowfullscreen="true" scrolling="no" frameborder="0" style="width:500px;height:450px;border:0" src="<?php echo $settings['iframe_url']; ?>"></iframe>
 
-<form name="postBackForm" action="<?php echo url('nemid/verify');?>" method="post">
+<form name="postBackForm" action="<?php
+
+  if (isset($nid) && is_numeric($nid)) {
+    $node = node_load($nid);
+    if ($node->type == 'webform') {
+      echo url('node/'.$nid);
+    }
+  }
+  else {
+    echo url('nemid/verify');
+  }
+
+  ?>" method="post">
   <input type="hidden" name="response" value=""/>
 </form>
 
