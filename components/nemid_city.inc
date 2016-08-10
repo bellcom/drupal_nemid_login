@@ -225,3 +225,59 @@ function _webform_csv_headers_nemid_city($component, $export_options) {
 function _webform_csv_data_nemid_city($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];
 }
+
+/**
+ * Implements _form_builder_webform_form_builder_types_component().
+ */
+function _form_builder_webform_form_builder_types_nemid_city() {
+  $fields = array();
+
+  $fields['nemid_city'] = array(
+    'title' => t('NemID City'),
+    'weight' => -20,
+  );
+  $component['name'] = t('New NemID City');
+  $fields['nemid_city']['default'] = _form_builder_webform_default('nemid_city', array(), $component);
+
+  return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_map_component().
+ */
+function _form_builder_webform_form_builder_map_nemid_city() {
+  return array(
+    'form_builder_type' => 'nemid_city',
+    'properties' => array(
+      'size' => array(
+        'storage_parents' => array('extra', 'width'),
+      ),
+      'maxlength' => array(
+        'storage_parents' => array('extra', 'maxlength'),
+      ),
+      'field_prefix' => array(
+        'storage_parents' => array('extra', 'field_prefix'),
+      ),
+      'field_suffix' => array(
+        'storage_parents' => array('extra', 'field_suffix'),
+      ),
+      'disabled' => array(
+        'storage_parents' => array('extra', 'disabled'),
+      ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_nemid_city() {
+  return array(
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
+  );
+}

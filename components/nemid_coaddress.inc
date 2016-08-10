@@ -225,3 +225,59 @@ function _webform_csv_headers_nemid_coaddress($component, $export_options) {
 function _webform_csv_data_nemid_coaddress($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];
 }
+
+/**
+ * Implements _form_builder_webform_form_builder_types_component().
+ */
+function _form_builder_webform_form_builder_types_nemid_coaddress() {
+  $fields = array();
+
+  $fields['nemid_coaddress'] = array(
+    'title' => t('NemID Coaddress'),
+    'weight' => -20,
+  );
+  $component['name'] = t('New NemID Coaddress');
+  $fields['nemid_coaddress']['default'] = _form_builder_webform_default('nemid_coaddress', array(), $component);
+
+  return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_map_component().
+ */
+function _form_builder_webform_form_builder_map_nemid_coaddress() {
+  return array(
+    'form_builder_type' => 'nemid_coaddress',
+    'properties' => array(
+      'size' => array(
+        'storage_parents' => array('extra', 'width'),
+      ),
+      'maxlength' => array(
+        'storage_parents' => array('extra', 'maxlength'),
+      ),
+      'field_prefix' => array(
+        'storage_parents' => array('extra', 'field_prefix'),
+      ),
+      'field_suffix' => array(
+        'storage_parents' => array('extra', 'field_suffix'),
+      ),
+      'disabled' => array(
+        'storage_parents' => array('extra', 'disabled'),
+      ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_nemid_coaddress() {
+  return array(
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
+  );
+}
