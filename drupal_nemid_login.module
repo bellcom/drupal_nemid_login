@@ -196,12 +196,11 @@ function _drupal_nemid_login_verify() {
         $cn = $subject['commonName'];
         $config = _drupal_nemid_login_get_config_object();
         $cpr = $nemid->pidCprRequest($config, $pid);
-        drupal_set_message(t('Login ok: cn @cn cpr @cpr pid @pid', array('@cn' => $cn, "@cpr"=>$cpr, "@pid" => $pid)), 'success');
 
         // Use serviceplatform to get address and other info.
         if (variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
           $message = vcv_serviceplatformen_get_address($cpr);
-
+          $message['cpr'] = $cpr;
         }
         if (arg(0) == 'nemid' && arg(1) == 'verify') {
           drupal_goto('<front>');
@@ -505,6 +504,11 @@ function _drupal_nemid_login_set_address_to_fields(&$variables) {
     foreach ($webform as $key => $item) {
       if (isset($item['#webform_component'])) {
         switch($item['#webform_component']['type']) {
+          case 'nemid_cpr':
+            $webform[$key]['#value'] = $message['cpr'];
+            $webform[$key]['#default_value'] = $message['cpr'];
+            break;
+
           case 'nemid_address':
             $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
             $webform[$key]['#value'] = $address_text;
