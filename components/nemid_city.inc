@@ -94,15 +94,6 @@ function _webform_render_nemid_city($component, $value = NULL, $filter = TRUE, $
     $element['#attributes']['placeholder'] = $component['extra']['placeholder'];
   }
 
-  if ($component['extra']['get_from_cpr']) {
-    if ($filter) {
-      $element['#attributes']['readonly'] = 'readonly';
-    }
-    else {
-      $element['#disabled'] = TRUE;
-    }
-  }
-
   // Enforce uniqueness.
   if ($component['extra']['unique']) {
     $element['#element_validate'][] = 'webform_validate_unique';
