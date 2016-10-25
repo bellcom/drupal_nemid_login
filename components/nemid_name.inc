@@ -122,7 +122,7 @@ function _webform_display_nemid_name($component, $value, $format = 'html', $subm
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
-    '#theme' => 'webform_display_nemid_name',
+    '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#field_prefix' => $component['extra']['field_prefix'],
     '#field_suffix' => $component['extra']['field_suffix'],
@@ -130,17 +130,6 @@ function _webform_display_nemid_name($component, $value, $format = 'html', $subm
     '#value' => isset($value[0]) ? $value[0] : '',
     '#translatable' => array('title', 'field_prefix', 'field_suffix'),
   );
-}
-
-/**
- * Format the output of data for this component.
- */
-function theme_webform_display_nemid_name($variables) {
-  $element = $variables['element'];
-  $prefix = $element['#format'] == 'html' ? '' : $element['#field_prefix'];
-  $suffix = $element['#format'] == 'html' ? '' : $element['#field_suffix'];
-  $value = $element['#format'] == 'html' ? check_plain($element['#value']) : $element['#value'];
-  return $value !== '' ? ($prefix . $value . $suffix) : ' ';
 }
 
 /**
