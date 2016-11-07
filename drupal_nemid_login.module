@@ -262,6 +262,10 @@ function _drupal_nemid_login_admin() {
       if ($field['type'] == 'radios') {
         $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#options'] = $field['options'];
       }
+
+      if ($field['type'] == 'password') {
+        $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#attributes'] = array('value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL));
+      }
     }
   }
   $form['serviceplatformen'] = array(
