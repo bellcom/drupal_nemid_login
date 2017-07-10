@@ -496,7 +496,15 @@ function drupal_nemid_login_webform_view($variables) {
     $block = drupal_render($output);
   }
   elseif (isset($_POST['response'])) {
-    _drupal_nemid_login_set_address_to_fields($variables);
+    // Get address from serverplatformen by CPR request.
+    $message = _drupal_nemid_login_verify();
+
+    if ($message['status']) {
+      _drupal_nemid_login_set_address_to_fields($variables, $message);
+      _drupal_nemid_login_set_fields_resursive($variables['webform']['#form']['submitted'], $message);
+    } else {
+      watchdog("Drupal Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
+    }
   }
   if ($variables['webform']['#enabled']) {
     return $block . drupal_render($variables['webform']['#form']);
@@ -506,59 +514,115 @@ function drupal_nemid_login_webform_view($variables) {
 /**
  * Set address to webform fields.
  */
-function _drupal_nemid_login_set_address_to_fields(&$variables) {
-  // Get address from serverplatformen by CPR request.
-  $message = _drupal_nemid_login_verify();
+function _drupal_nemid_login_set_address_to_fields(&$variables, $message) {
+  $webform = $variables['webform']['#form']['submitted'];
+  foreach ($webform as $key => $item) {
+    if (isset($item['#webform_component'])) {
+      switch ($item['#webform_component']['type']) {
+        case 'nemid_cpr':
+          $webform[$key]['#value'] = $message['cpr'];
+          $webform[$key]['#default_value'] = $message['cpr'];
+          if ($message['cpr'] != '') {
+            $webform[$key]['#attributes']['readonly'] = 'readonly';
+          }
+          break;
 
-  if ($message['status']) {
+        case 'nemid_address':
+          $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
+          $webform[$key]['#value'] = $address_text;
+          $webform[$key]['#default_value'] = $address_text;
+          if ($message['road'] != '') {
+            $webform[$key]['#attributes']['readonly'] = 'readonly';
+          }
+          break;
 
-    $webform = $variables['webform']['#form']['submitted'];
-    foreach ($webform as $key => $item) {
-      if (isset($item['#webform_component'])) {
-        switch($item['#webform_component']['type']) {
-          case 'nemid_cpr':
-            $webform[$key]['#value'] = $message['cpr'];
-            $webform[$key]['#default_value'] = $message['cpr'];
-            if ($message['cpr'] != '') {
-              $webform[$key]['#attributes']['readonly'] = 'readonly';
-            }
-            break;
+        case 'nemid_coaddress':
+          $webform[$key]['#value'] = $message['coname'];
+          $webform[$key]['#default_value'] = $message['coname'];
+          if ($message['coname'] != '') {
+            $webform[$key]['#attributes']['readonly'] = 'readonly';
+          }
+          break;
 
-          case 'nemid_address':
-            $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
-            $webform[$key]['#value'] = $address_text;
-            $webform[$key]['#default_value'] = $address_text;
-            if ($message['road'] != '') {
-              $webform[$key]['#attributes']['readonly'] = 'readonly';
-            }
-            break;
+        case 'nemid_name':
+          $webform[$key]['#value'] = $message['name'];
+          $webform[$key]['#default_value'] = $message['name'];
+          if ($message['name'] != '') {
+            $webform[$key]['#attributes']['readonly'] = 'readonly';
+          }
+          break;
 
-          case 'nemid_coaddress':
-            $webform[$key]['#value'] = $message['coname'];
-            $webform[$key]['#default_value'] = $message['coname'];
-            if ($message['coname'] != '') {
-              $webform[$key]['#attributes']['readonly'] = 'readonly';
-            }
-            break;
+        case 'nemid_city':
+          $webform[$key]['#value'] = $message['zipcode'] . ' ' . $message['city'];
+          if ($message['zipcode'] != '') {
+            $webform[$key]['#attributes']['readonly'] = 'readonly';
+          }
+          break;
+      }
+    }
+  }
 
-          case 'nemid_name':
-            $webform[$key]['#value'] = $message['name'] ;
-            $webform[$key]['#default_value'] = $message['name'] ;
-            if ($message['name'] != '') {
-              $webform[$key]['#attributes']['readonly'] = 'readonly';
-            }
-            break;
+  $variables['webform']['#form']['submitted'] = $webform;
+}
 
-          case 'nemid_city':
-            $webform[$key]['#value'] = $message['zipcode'] . ' ' . $message['city'] ;
-            if ($message['zipcode'] != '') {
-              $webform[$key]['#attributes']['readonly'] = 'readonly';
-            }
-            break;
+/**
+ * Updating fields with the values from nemlogin request, works also with the nested structure
+ *
+ * @param $tree
+ * @param $message
+ */
+function _drupal_nemid_login_set_fields_resursive(&$tree, $message) {
+  if (isset($tree['#webform_component']) && empty($tree['#webform_component']['children'])) {
+    switch ($tree['#webform_component']['type']) {
+      case 'nemid_cpr':
+        $tree['#value'] = $message['cpr'];
+        $tree['#default_value'] = $message['cpr'];
+        if ($message['cpr'] != '') {
+          $tree['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+
+      case 'nemid_address':
+        $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
+        $tree['#value'] = $address_text;
+        $tree['#default_value'] = $address_text;
+        if ($message['road'] != '') {
+          $tree['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+
+      case 'nemid_coaddress':
+        $tree['#value'] = $message['coname'];
+        $tree['#default_value'] = $message['coname'];
+        if ($message['coname'] != '') {
+          $tree['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+
+      case 'nemid_name':
+        $tree['#value'] = $message['name'];
+        $tree['#default_value'] = $message['name'];
+        if ($message['name'] != '') {
+          $tree['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+
+      case 'nemid_city':
+        $tree['#value'] = $message['zipcode'] . ' ' . $message['city'];
+        if ($message['zipcode'] != '') {
+          $tree['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+    }
+  }
+
+  foreach ($tree as $item_key => $item) {
+    if (isset($tree[$item_key]['#webform_component'])) {
+      if (!empty($tree[$item_key]['#webform_component']['children'])) {
+        foreach ($tree[$item_key]['#webform_component']['children'] as $child) {
+          _drupal_nemid_login_set_fields_resursive($tree[$item_key][$child['form_key']], $message);
         }
       }
     }
-
-    $variables['webform']['#form']['submitted'] = $webform;
   }
 }
