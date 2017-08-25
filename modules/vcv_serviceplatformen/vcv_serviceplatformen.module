@@ -58,6 +58,15 @@ function vcv_serviceplatformen_settings() {
 
       if ($message['status']) {
         $output = '<div style="font-size: 15px; color : green"><b>Succeed</b></div>';
+
+        if (variable_get('mode_selector') == 1) { //test mode
+          //using test_mode_fixed_cpr, if one provided, otherwise leave unchanged
+          $fixed_cpr = trim(variable_get('test_mode_fixed_cpr', $cpr));
+          if (!empty($fixed_cpr)) {
+            $cpr = $fixed_cpr;
+          }
+        }
+
         $output .= '<div> Test CPR nr. ' . $cpr . '<br />';
         foreach ($message as $key => $item) {
           if ($key != 'status') {
@@ -83,6 +92,18 @@ function vcv_serviceplatformen_settings() {
     '#title' => t('Mode selector'),
     '#default_value' => variable_get('mode_selector', 0),
     '#options' => array(0 => 'Live', 1 => 'Test'),
+  );
+  $form['mode_fieldset']['test_mode_fixed_cpr'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Fixed test CPR (only if test mode is on)'),
+    '#default_value' => variable_get('test_mode_fixed_cpr'),
+    '#description' => t('Is set, fixed CPR will be used for all requests to the serviceplatformen instead of the provided CPR. Useful when testing is needed with NemID login block'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="mode_selector"]' => array('value' => 0),
+      ),
+    ),
+
   );
 
   $form['test_cpr_fieldset'] = array(
@@ -242,6 +263,12 @@ function vcv_serviceplatformen_query($cpr) {
     if ($mode == 1) { //test mode
       $service_location = variable_get('vcv_serviceplatformen_location_test');
       $certfile = variable_get('vcv_serviceplatformen_certfile_test');
+
+      //using test_mode_fixed_cpr, if one provided, otherwise leave unchanged
+      $fixed_cpr = trim(variable_get('test_mode_fixed_cpr', $cpr));
+      if (!empty($fixed_cpr)) {
+        $cpr = $fixed_cpr;
+      }
     }
 
     $client = new SoapClient($wsdl_address, array(
