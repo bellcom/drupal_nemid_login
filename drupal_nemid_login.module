@@ -168,6 +168,11 @@ function _drupal_nemid_login_verify() {
   $DISABLE_OCSP_CHECK = TRUE;
   $message = '';
 
+  //do we have the session already?
+  if ($_SESSION['nemid_login']['message']) {
+    return $_SESSION['nemid_login']['message'];
+  }
+
   if ( isset($_POST['response']) ) {
     require dirname(__FILE__).'/lib/nemid-error-codes.php';
     $response = base64_decode($_POST['response']);
@@ -186,6 +191,7 @@ function _drupal_nemid_login_verify() {
       $trustedrootdigests = new StdClass();
       $trustedrootdigests->trustedrootdigests = array(
         'productionRootOces' => '92d8092ee77bc9208f0897dc05271894e63ef27933ae537fb983eef0eae3eec8',
+        'preproductionCertificateOcesII' 	=> '0e2fd1fda36a4bf3995e28619704d60e3382c91e44a2b458ab891316380b1d50',
       );
 
       $nemid = new WAYF\NemidCertificateCheck();
@@ -203,6 +209,8 @@ function _drupal_nemid_login_verify() {
         if (variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
           $message = vcv_serviceplatformen_get_address($cpr);
           $message['cpr'] = $cpr;
+
+          $_SESSION['nemid_login']['message'] = $message;
         }
         if (arg(0) == 'nemid' && arg(1) == 'verify') {
           drupal_goto('<front>');
@@ -490,7 +498,7 @@ function drupal_nemid_login_webform_view($variables) {
   }
   $block = '';
   $nid = $variables['webform']['#node']->nid;
-  if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']))) {
+  if (variable_get('nemid_login_block_enable_' . $nid, 0) && !$_SESSION['nemid_login']['message']) {
     $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
     $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
     $block = drupal_render($output);
@@ -501,12 +509,14 @@ function drupal_nemid_login_webform_view($variables) {
 
     if ($message['status']) {
       _drupal_nemid_login_set_address_to_fields($variables, $message);
-      _drupal_nemid_login_set_fields_resursive($variables['webform']['#form']['submitted'], $message);
+      _drupal_nemid_login_set_fields_recursive($variables['webform']['#form']['submitted'], $message);
     } else {
       watchdog("Drupal Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
     }
   }
   if ($variables['webform']['#enabled']) {
+    //unsetting the message after it has been used once
+    unset($_SESSION['nemid_login']['message']);
     return $block . drupal_render($variables['webform']['#form']);
   }
 }
@@ -571,7 +581,7 @@ function _drupal_nemid_login_set_address_to_fields(&$variables, $message) {
  * @param $tree
  * @param $message
  */
-function _drupal_nemid_login_set_fields_resursive(&$tree, $message) {
+function _drupal_nemid_login_set_fields_recursive(&$tree, $message) {
   if (isset($tree['#webform_component']) && empty($tree['#webform_component']['children'])) {
     switch ($tree['#webform_component']['type']) {
       case 'nemid_cpr':
@@ -620,7 +630,7 @@ function _drupal_nemid_login_set_fields_resursive(&$tree, $message) {
     if (isset($tree[$item_key]['#webform_component'])) {
       if (!empty($tree[$item_key]['#webform_component']['children'])) {
         foreach ($tree[$item_key]['#webform_component']['children'] as $child) {
-          _drupal_nemid_login_set_fields_resursive($tree[$item_key][$child['form_key']], $message);
+          _drupal_nemid_login_set_fields_recursive($tree[$item_key][$child['form_key']], $message);
         }
       }
     }
