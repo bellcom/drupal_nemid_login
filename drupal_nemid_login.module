@@ -344,7 +344,7 @@ function drupal_nemid_login_webform_component_info() {
     'value' => '',
     'required' => 1,
     'features' => array(
-      'csv' => FALSE,
+      'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
       'email_name' => FALSE,
@@ -368,7 +368,7 @@ function drupal_nemid_login_webform_component_info() {
     'value' => '',
     'required' => 1,
     'features' => array(
-      'csv' => FALSE,
+      'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
       'email_name' => FALSE,
@@ -392,7 +392,7 @@ function drupal_nemid_login_webform_component_info() {
     'value' => '',
     'required' => 1,
     'features' => array(
-      'csv' => FALSE,
+      'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
       'email_name' => FALSE,
@@ -416,7 +416,7 @@ function drupal_nemid_login_webform_component_info() {
     'value' => '',
     'required' => 1,
     'features' => array(
-      'csv' => FALSE,
+      'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
       'email_name' => FALSE,
@@ -440,7 +440,7 @@ function drupal_nemid_login_webform_component_info() {
     'value' => '',
     'required' => 1,
     'features' => array(
-      'csv' => FALSE,
+      'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
       'email_name' => FALSE,
