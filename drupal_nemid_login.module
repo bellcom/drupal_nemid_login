@@ -498,7 +498,7 @@ function drupal_nemid_login_webform_view($variables) {
   }
   $block = '';
   $nid = $variables['webform']['#node']->nid;
-  if (variable_get('nemid_login_block_enable_' . $nid, 0) && !$_SESSION['nemid_login']['message']) {
+  if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']) && !$_SESSION['nemid_login']['message'])) {
     $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
     $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
     $block = drupal_render($output);
