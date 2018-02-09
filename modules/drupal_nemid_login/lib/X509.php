@@ -1,6 +1,6 @@
 <?php
 namespace WAYF;
-require_once dirname(__FILE__).'/Der.php';
+require_once dirname(__FILE__) . '/Der.php';
 
 /**
     X509 is a minimal der parser for certificates - just enough for NemID use

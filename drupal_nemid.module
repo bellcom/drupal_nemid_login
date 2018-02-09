@@ -1,0 +1,198 @@
+<?php
+
+/**
+ * Implements hook_webform_componen_info().
+ * Describes multiple nemid fields that can be used in the webforms.
+ *
+ * @return array
+ */
+function drupal_nemid_webform_component_info() {
+  $components = array();
+  $components['nemid_cpr'] = array(
+    'label' => t('NemID CPR'),
+    'description' => t('Create CPR field.'),
+    'name' => 'nemid_cpr',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_cpr.inc',
+  );
+  $components['nemid_name'] = array(
+    'label' => t('NemID Name'),
+    'description' => t('Create NemID name field.'),
+    'name' => 'nemid_name',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_name.inc',
+  );
+  $components['nemid_coaddress'] = array(
+    'label' => t('NemID C/O address'),
+    'description' => t('Create NemID C/O-address field.'),
+    'name' => 'nemid_coaddress',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_coaddress.inc',
+  );
+  $components['nemid_address'] = array(
+    'label' => t('NemID Address'),
+    'description' => t('Create NemID address field.'),
+    'name' => 'nemid_address',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_address.inc',
+  );
+  $components['nemid_city'] = array(
+    'label' => t('NemID Postal / City'),
+    'description' => t('Create NemID Postal code / city field.'),
+    'name' => 'nemid_city',
+    'form_key' => NULL,
+    'pid' => 0,
+    'weight' => 0,
+    'value' => '',
+    'required' => 1,
+    'features' => array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => TRUE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/nemid_city.inc',
+  );
+
+  return $components;
+}
+
+/**
+ * Updating fields with the values from nemlogin request, works also with the nested structure
+ *
+ * @param $tree
+ * @param $message
+ */
+function drupal_nemid_populate_fields_recursive(&$tree, $message) {
+  foreach (array_keys($tree) as $item_key) {
+    if ($tree['#tree']) {
+      $type = $tree[$item_key]['#webform_component']['type'];
+      $item = &$tree[$item_key];
+    }
+    else {
+      $type = $tree[$item_key]['type'];
+      $item = &$tree;
+    }
+
+    switch ($type) {
+      case 'nemid_cpr':
+        $item['#value'] = $message['cpr'];
+        if ($message['cpr'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+      case 'nemid_address':
+        $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
+        $item['#value'] = $address_text;
+        if ($message['road'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+      case 'nemid_coaddress':
+        $item['#value'] = $message['coname'];
+        if ($message['cpr'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+      case 'nemid_name':
+        $item['#value'] = $message['name'];
+        if ($message['cpr'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+      case 'nemid_city':
+        $item['#value'] = $message['zipcode'] . ' ' . $message['city'];
+        if ($message['zipcode'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+    }
+
+    unset($item);
+  }
+
+  foreach (array_keys($tree) as $item_key) {
+    if (isset($tree[$item_key]['#webform_component'])) {
+      if (!empty($tree[$item_key]['#webform_component']['children'])) {
+        foreach ($tree[$item_key]['#webform_component']['children'] as $child) {
+          drupal_nemid_populate_fields_recursive($tree[$item_key][$child['form_key']], $message);
+        }
+      }
+    }
+  }
+}
