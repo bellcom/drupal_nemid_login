@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Webform module NemID Company Name component.
+ * Webform module NemID Company CVR component.
  */
 
 /**
  * Implements _webform_defaults_component().
  */
-function _webform_defaults_nemid_company_name() {
+function _webform_defaults_nemid_com_cvr() {
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -18,12 +18,12 @@ function _webform_defaults_nemid_company_name() {
     'required' => 0,
     'extra' => array(
       'width' => '',
-      'maxlength' => '',
+      'maxlength' => '10',
       'disabled' => 0,
       'unique' => 0,
       'title_display' => 0,
       'description' => '',
-      'placeholder' => '',
+      'placeholder' => '12345678',
       'attributes' => array(),
       'private' => FALSE,
       'analysis' => FALSE,
@@ -34,7 +34,7 @@ function _webform_defaults_nemid_company_name() {
 /**
  * Implements _webform_edit_component().
  */
-function _webform_edit_nemid_company_name($component) {
+function _webform_edit_nemid_com_cvr($component) {
   $form = array();
   $form['value'] = array(
     '#type' => 'textfield',
@@ -45,15 +45,6 @@ function _webform_edit_nemid_company_name($component) {
     '#maxlength' => 1024,
     '#weight' => 0,
   );
-//  $form['get_from_cvrcpr'] = array(
-//    '#type' => 'checkbox',
-//    '#title' => t('Get from CPR'),
-//    '#return_value' => 1,
-//    '#description' => t('Get data from CPR and disable if data is available.'),
-//    '#weight' => 1,
-//    '#default_value' => $component['extra']['get_from_cpr'],
-//    '#parents' => array('extra', 'get_from_cpr'),
-//  );
   $form['display']['placeholder'] = array(
     '#type' => 'textfield',
     '#title' => t('Placeholder'),
@@ -76,7 +67,7 @@ function _webform_edit_nemid_company_name($component) {
 /**
  * Implements _webform_render_component().
  */
-function _webform_render_nemid_company_name($component, $value = NULL, $filter = TRUE, $submission = NULL) {
+function _webform_render_nemid_com_cvr($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $element = array(
@@ -124,8 +115,8 @@ function _webform_render_nemid_company_name($component, $value = NULL, $filter =
     $element['#maxlength'] = $component['extra']['maxlength'];
   }
 
-  if (isset($value[0])) {
-    $element['#default_value'] = $value[0];
+  if (isset($_SESSION['nemid_login']['cvr'])) {
+    $element['#default_value'] = $_SESSION['nemid_login']['cvr'];
   }
 
   return $element;
@@ -134,7 +125,7 @@ function _webform_render_nemid_company_name($component, $value = NULL, $filter =
 /**
  * Implements _webform_display_component().
  */
-function _webform_display_nemid_company_name($component, $value, $format = 'html', $submission = array()) {
+function _webform_display_nemid_com_cvr($component, $value, $format = 'html', $submission = array()) {
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
@@ -152,7 +143,7 @@ function _webform_display_nemid_company_name($component, $value, $format = 'html
 /**
  * Implements _webform_analysis_component().
  */
-function _webform_analysis_nemid_company_name($component, $sids = array(), $single = FALSE, $join = NULL) {
+function _webform_analysis_nemid_com_cvr($component, $sids = array(), $single = FALSE, $join = NULL) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
     ->fields('wsd', array('data'))
     ->condition('wsd.nid', $component['nid'])
@@ -193,14 +184,14 @@ function _webform_analysis_nemid_company_name($component, $sids = array(), $sing
 /**
  * Implements _webform_table_component().
  */
-function _webform_table_nemid_company_name($component, $value) {
+function _webform_table_nemid_com_cvr($component, $value) {
   return check_plain(empty($value[0]) ? '' : $value[0]);
 }
 
 /**
  * Implements _webform_action_set_component().
  */
-function _webform_action_set_nemid_company_name($component, &$element, &$form_state, $value) {
+function _webform_action_set_nemid_com_cvr($component, &$element, &$form_state, $value) {
   $element['#value'] = $value;
   form_set_value($element, $value, $form_state);
 }
@@ -208,7 +199,7 @@ function _webform_action_set_nemid_company_name($component, &$element, &$form_st
 /**
  * Implements _webform_csv_headers_component().
  */
-function _webform_csv_headers_nemid_company_name($component, $export_options) {
+function _webform_csv_headers_nemid_com_cvr($component, $export_options) {
   $header = array();
   $header[0] = '';
   $header[1] = '';
@@ -219,22 +210,22 @@ function _webform_csv_headers_nemid_company_name($component, $export_options) {
 /**
  * Implements _webform_csv_data_component().
  */
-function _webform_csv_data_nemid_company_name($component, $export_options, $value) {
+function _webform_csv_data_nemid_com_cvr($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];
 }
 
 /**
  * Implements _form_builder_webform_form_builder_types_component().
  */
-function _form_builder_webform_form_builder_types_nemid_company_name() {
+function _form_builder_webform_form_builder_types_nemid_com_cvr() {
   $fields = array();
 
-  $fields['nemid_company_name'] = array(
-    'title' => t('NemID Company Name'),
+  $fields['nemid_com_cvr'] = array(
+    'title' => t('NemID Company CVR'),
     'weight' => -20,
   );
-  $component['name'] = t('New NemID Company Name');
-  $fields['nemid_company_name']['default'] = _form_builder_webform_default('nemid_company_name', array(), $component);
+  $component['name'] = t('New Company CVR');
+  $fields['nemid_com_cvr']['default'] = _form_builder_webform_default('nemid_com_cvr', array(), $component);
 
   return $fields;
 }
@@ -242,9 +233,9 @@ function _form_builder_webform_form_builder_types_nemid_company_name() {
 /**
  * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_map_nemid_company_name() {
+function _form_builder_webform_form_builder_map_nemid_com_cvr() {
   return array(
-    'form_builder_type' => 'nemid_company_name',
+    'form_builder_type' => 'nemid_com_cvr',
     'properties' => array(
       'size' => array(
         'storage_parents' => array('extra', 'width'),
@@ -271,7 +262,7 @@ function _form_builder_webform_form_builder_map_nemid_company_name() {
 /**
  * Implements _form_builder_webform_form_builder_properties_component().
  */
-function _form_builder_webform_form_builder_properties_nemid_company_name() {
+function _form_builder_webform_form_builder_properties_nemid_com_cvr() {
   return array(
     'unique' => array(
       'form' => 'form_builder_webform_property_unique_form',

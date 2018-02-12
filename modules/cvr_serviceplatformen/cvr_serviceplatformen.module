@@ -196,7 +196,6 @@ function cvr_serviceplatformen_settings_submit(&$form, &$form_state) {
  */
 function cvr_serviceplatformen_query_info($cvr) {
   $message = cvr_serviceplatformen_get_legal_unit($cvr);
-  dpm($message);
 
   if ($message['status']) {
     return array(

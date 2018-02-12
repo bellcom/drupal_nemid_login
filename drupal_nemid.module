@@ -98,40 +98,40 @@ function drupal_nemid_webform_component_info() {
   $components['nemid_city'] += $component_defaults;
 
   //Company FIELDS - CVR
-  $components['nemid_company_cvr'] = array(
+  $components['nemid_com_cvr'] = array(
     'label' => t('NemID Company CVR'),
     'description' => t('Create Company CVR field.'),
-    'name' => 'nemid_company_cvr',
-    'file' => 'components/nemid_company_cvr.inc',
+    'name' => 'nemid_com_cvr',
+    'file' => 'components/nemid_com_cvr.inc',
   );
-  $components['nemid_company_cvr'] += $component_defaults;
+  $components['nemid_com_cvr'] += $component_defaults;
 
   //Company FIELDS - Name
-  $components['nemid_company_name'] = array(
+  $components['nemid_com_name'] = array(
     'label' => t('NemID Company Name'),
     'description' => t('Create Company Name field.'),
-    'name' => 'nemid_company_name',
-    'file' => 'components/nemid_company_name.inc',
+    'name' => 'nemid_com_name',
+    'file' => 'components/nemid_com_name.inc',
   );
-  $components['nemid_company_name'] += $component_defaults;
+  $components['nemid_com_name'] += $component_defaults;
 
   //Company FIELDS - Address
-  $components['nemid_company_address'] = array(
+  $components['nemid_com_addr'] = array(
     'label' => t('NemID Company Address'),
     'description' => t('Create Company address field.'),
-    'name' => 'nemid_company_address',
-    'file' => 'components/nemid_company_address.inc',
+    'name' => 'nemid_com_addr',
+    'file' => 'components/nemid_com_addr.inc',
   );
-  $components['nemid_company_address'] += $component_defaults;
+  $components['nemid_com_addr'] += $component_defaults;
 
-  //Company FIELDS - Address
-  $components['nemid_company_city'] = array(
+  //Company FIELDS - City
+  $components['nemid_com_city'] = array(
     'label' => t('NemID Company Postal / City'),
     'description' => t('Create Company city field.'),
-    'name' => 'nemid_company_city',
-    'file' => 'components/nemid_company_city.inc',
+    'name' => 'nemid_com_city',
+    'file' => 'components/nemid_com_city.inc',
   );
-  $components['nemid_company_city'] += $component_defaults;
+  $components['nemid_com_city'] += $component_defaults;
 
   return $components;
 }
@@ -185,25 +185,25 @@ function drupal_nemid_populate_fields_recursive(&$tree, $message) {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
-      case 'nemid_company_cvr':
+      case 'nemid_com_cvr':
         $item['#value'] = $message['cvr'];
         if ($message['cvr'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
-      case 'nemid_company_name':
+      case 'nemid_com_name':
         $item['#value'] = $message['company_name'];
         if ($message['company_name'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
-      case 'nemid_company_address':
+      case 'nemid_com_addr':
         $item['#value'] = $message['company_street'] . ' ' . $message['company_house_nr'] . ' ' . $message['company_floor'];
         if ($message['company_street'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
-      case 'nemid_company_city':
+      case 'nemid_com_city':
         $item['#value'] = $message['company_zipcode'] . ' ' . $message['company_city'];
         if ($message['company_zipcode'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
