@@ -8,7 +8,7 @@
 /**
  * Implements _webform_defaults_component().
  */
-function _webform_defaults_nemid_com_city() {
+function _webform_defaults_nemid_com_name() {
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -34,7 +34,7 @@ function _webform_defaults_nemid_com_city() {
 /**
  * Implements _webform_edit_component().
  */
-function _webform_edit_nemid_com_city($component) {
+function _webform_edit_nemid_com_name($component) {
   $form = array();
   $form['value'] = array(
     '#type' => 'textfield',
@@ -76,7 +76,7 @@ function _webform_edit_nemid_com_city($component) {
 /**
  * Implements _webform_render_component().
  */
-function _webform_render_nemid_com_city($component, $value = NULL, $filter = TRUE, $submission = NULL) {
+function _webform_render_nemid_com_name($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $element = array(
@@ -134,7 +134,7 @@ function _webform_render_nemid_com_city($component, $value = NULL, $filter = TRU
 /**
  * Implements _webform_display_component().
  */
-function _webform_display_nemid_com_city($component, $value, $format = 'html', $submission = array()) {
+function _webform_display_nemid_com_name($component, $value, $format = 'html', $submission = array()) {
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
@@ -152,7 +152,7 @@ function _webform_display_nemid_com_city($component, $value, $format = 'html', $
 /**
  * Implements _webform_analysis_component().
  */
-function _webform_analysis_nemid_com_city($component, $sids = array(), $single = FALSE, $join = NULL) {
+function _webform_analysis_nemid_com_name($component, $sids = array(), $single = FALSE, $join = NULL) {
   $query = db_select('webform_submitted_data', 'wsd', array('fetch' => PDO::FETCH_ASSOC))
     ->fields('wsd', array('data'))
     ->condition('wsd.nid', $component['nid'])
@@ -193,14 +193,14 @@ function _webform_analysis_nemid_com_city($component, $sids = array(), $single =
 /**
  * Implements _webform_table_component().
  */
-function _webform_table_nemid_com_city($component, $value) {
+function _webform_table_nemid_com_name($component, $value) {
   return check_plain(empty($value[0]) ? '' : $value[0]);
 }
 
 /**
  * Implements _webform_action_set_component().
  */
-function _webform_action_set_nemid_com_city($component, &$element, &$form_state, $value) {
+function _webform_action_set_nemid_com_name($component, &$element, &$form_state, $value) {
   $element['#value'] = $value;
   form_set_value($element, $value, $form_state);
 }
@@ -208,7 +208,7 @@ function _webform_action_set_nemid_com_city($component, &$element, &$form_state,
 /**
  * Implements _webform_csv_headers_component().
  */
-function _webform_csv_headers_nemid_com_city($component, $export_options) {
+function _webform_csv_headers_nemid_com_name($component, $export_options) {
   $header = array();
   $header[0] = '';
   $header[1] = '';
@@ -219,22 +219,22 @@ function _webform_csv_headers_nemid_com_city($component, $export_options) {
 /**
  * Implements _webform_csv_data_component().
  */
-function _webform_csv_data_nemid_com_city($component, $export_options, $value) {
+function _webform_csv_data_nemid_com_name($component, $export_options, $value) {
   return !isset($value[0]) ? '' : $value[0];
 }
 
 /**
  * Implements _form_builder_webform_form_builder_types_component().
  */
-function _form_builder_webform_form_builder_types_nemid_com_city() {
+function _form_builder_webform_form_builder_types_nemid_com_name() {
   $fields = array();
 
-  $fields['nemid_com_city'] = array(
+  $fields['nemid_com_name'] = array(
     'title' => t('NemID Company Name'),
     'weight' => -20,
   );
   $component['name'] = t('New NemID Company Name');
-  $fields['nemid_com_city']['default'] = _form_builder_webform_default('nemid_com_city', array(), $component);
+  $fields['nemid_com_name']['default'] = _form_builder_webform_default('nemid_com_name', array(), $component);
 
   return $fields;
 }
@@ -242,9 +242,9 @@ function _form_builder_webform_form_builder_types_nemid_com_city() {
 /**
  * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_map_nemid_com_city() {
+function _form_builder_webform_form_builder_map_nemid_com_name() {
   return array(
-    'form_builder_type' => 'nemid_com_city',
+    'form_builder_type' => 'nemid_com_name',
     'properties' => array(
       'size' => array(
         'storage_parents' => array('extra', 'width'),
@@ -271,7 +271,7 @@ function _form_builder_webform_form_builder_map_nemid_com_city() {
 /**
  * Implements _form_builder_webform_form_builder_properties_component().
  */
-function _form_builder_webform_form_builder_properties_nemid_com_city() {
+function _form_builder_webform_form_builder_properties_nemid_com_name() {
   return array(
     'unique' => array(
       'form' => 'form_builder_webform_property_unique_form',
