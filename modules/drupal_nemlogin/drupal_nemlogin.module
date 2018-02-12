@@ -14,7 +14,7 @@ function drupal_nemlogin_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/config/system/nemlogin'] = array(
+  $items['admin/config/drupal_nemid/nemlogin'] = array(
     'title' => t('Configure Nemlogin'),
     'description' => t('Configure Nemlogin settings'),
     'page callback' => 'drupal_get_form',
@@ -70,6 +70,9 @@ function drupal_nemlogin_require_auth($nid) {
     );
   } catch (Exception $e) {
     watchdog("Drupal nemlogin", t('Cannot initialize simplesaml request: ') . $e->getMessage(), array(), WATCHDOG_ERROR);
+
+    // If for some reason the redirect didn't happen automatically, go back to node
+    drupal_goto("node/$nid");
   }
 
   return '';
@@ -100,7 +103,7 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
           if ($as->isAuthenticated()) {
             // If CPR is fetched, prefill the form.
             $cpr = attemptFetchCpr($as);
-            if ($cpr && variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
+            if ($cpr && module_exists('vcv_serviceplatformen')) {
               $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
               if ($serviceplaformen_message['status']) {
                 $serviceplaformen_message['cpr'] = $cpr;
@@ -111,8 +114,8 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
 
             // If CVR is fetched, prefill the form.
             $cvr = attemptFetchCvr($as);
-            if ($cvr && variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
-              $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
+            if ($cvr && module_exists('cvr_serviceplatformen')) {
+              $serviceplaformen_message = cvr_serviceplatformen_query_info($cvr);
               if ($serviceplaformen_message['status']) {
                 drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }

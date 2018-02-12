@@ -30,9 +30,9 @@ function drupal_nemid_login_menu() {
     'type'             => MENU_CALLBACK,
   );
 
-  $items['admin/config/system/nemid'] = array(
-    'title'            => t('Configure NemID'),
-    'description'      => t('Configure NemID settings'),
+  $items['admin/config/drupal_nemid/nemid_login'] = array(
+    'title'            => t('Configure NemID login block'),
+    'description'      => t('Configure NemID login block settings'),
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('_drupal_nemid_login_admin'),
     'access arguments' => array('access administration pages'),
@@ -207,7 +207,7 @@ function _drupal_nemid_login_verify() {
         $cpr = $nemid->pidCprRequest($config, $pid);
 
         // Use serviceplatform to get address and other info.
-        if (variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
+        if (module_exists('vcv_serviceplatformen')) {
           $message = vcv_serviceplatformen_get_address($cpr);
           $message['cpr'] = $cpr;
 
@@ -276,27 +276,6 @@ function _drupal_nemid_login_admin() {
         $form[$variablePrefix.$mode][$variablePrefix.$fieldKey.'_'.$mode]['#attributes'] = array('value' => variable_get($variablePrefix.$fieldKey.'_'.$mode, NULL));
       }
     }
-  }
-  $form['serviceplatformen'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Serviceplatformen - CPR Validator, Addresse')
-  );
-  if (module_exists('vcv_serviceplatformen')) {
-    $form['serviceplatformen']['use_serviceplatform_to_get_address'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use serviceplatform CPR Validator service to fetch address by CPR no.'),
-      '#default_value' => variable_get('use_serviceplatform_to_get_address', 0),
-    );
-    $form['serviceplatformen']['vcv_serviceplatformen_help_text'] = array(
-      '#type' => 'item',
-      '#markup' => '<a href="/admin/valghalla/validator/vcv_serviceplatformen">' .t('Indstillinger') . '</a>',
-    );
-  }
-  else {
-    $form['serviceplatformen']['vcv_serviceplatformen_help_text'] = array(
-      '#type' => 'item',
-      '#markup' => t('* Install CPR Validator service: Serviceplatformen module <b>(vcv_serviceplatformen)</b> to fetch address by CPR no.'),
-    );
   }
   $form['nemid_login_form_help'] = array(
       '#type' => 'text_format',
