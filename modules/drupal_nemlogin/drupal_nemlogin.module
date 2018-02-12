@@ -98,16 +98,8 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
 
           // Check if user is already authentificated.
           if ($as->isAuthenticated()) {
-            // Fetching the CPR.
-            $attrs = $as->getAttributes();
-            $cpr = NULL;
-            if (is_array($attrs) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'])) {
-              if (is_array($attrs['dk:gov:saml:attribute:CprNumberIdentifier']) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0])) {
-                $cpr = $attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0];
-              }
-            }
-
-            // If cpr is fetched, prefill the form.
+            // If CPR is fetched, prefill the form.
+            $cpr = attemptFetchCpr($as);
             if ($cpr && variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
               $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
               if ($serviceplaformen_message['status']) {
@@ -116,6 +108,25 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
                 drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
+
+            // If CVR is fetched, prefill the form.
+            $cvr = attemptFetchCvr($as);
+            if ($cvr && variable_get('use_serviceplatform_to_get_address') && module_exists('vcv_serviceplatformen')) {
+              $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
+              if ($serviceplaformen_message['status']) {
+                drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
+              }
+            }
+
+            global $base_url;
+            global $base_path;
+            $return_to_link = $base_url . $base_path . "node/$nid";
+
+            // Logout url.
+            $form['submitted'][] = array(
+              '#markup' => '<a href="' . $as->getLogoutURL($return_to_link) . '">Logout af nemid</a>',
+              '#weight' => -99,
+            );
           }
           else {
             // If modify form to include the link for authentification.

@@ -18,3 +18,42 @@ function getSimpleSamlAuth() {
     return $as;
   }
 }
+
+/**
+ * Function that attempts to fetch CPR from the SimpleAuth attibutes.
+ * If CPR is fetch it is returned, otherwise NULL is returned.
+ *
+ * @param $as
+ * @return null
+ */
+function attemptFetchCpr($as) {
+  $attrs = $as->getAttributes();
+  $cpr = NULL;
+  if (is_array($attrs) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'])) {
+    if (is_array($attrs['dk:gov:saml:attribute:CprNumberIdentifier']) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0])) {
+      $cpr = $attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0];
+    }
+  }
+
+  return $cpr;
+}
+
+/**
+ * Function that attempts to fetch CVR from the SimpleAuth attibutes.
+ * If CVR is fetch it is returned, otherwise NULL is returned.
+ *
+ * @param $as
+ * @return null
+ */
+function attemptFetchCvr($as) {
+  $attrs = $as->getAttributes();
+  $cvr = NULL;
+  if (is_array($attrs) && isset($attrs['dk:gov:saml:attribute:CvrNumberIdentifier'])) {
+    if (is_array($attrs['dk:gov:saml:attribute:CvrNumberIdentifier']) && isset($attrs['dk:gov:saml:attribute:CvrNumberIdentifier'][0])) {
+      $cvr = $attrs['dk:gov:saml:attribute:CvrNumberIdentifier'][0];
+    }
+  }
+
+  return $cvr;
+}
+
