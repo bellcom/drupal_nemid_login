@@ -41,7 +41,7 @@ function attemptFetchNumberIdentifier($as, $field_name = 'cpr') {
   $attrs = $as->getAttributes();
   $field_value = NULL;
 
-  if (is_array($attrs) && isset($attrs["dk:gov:saml:attribute:$field_name}"])) {
+  if (is_array($attrs) && isset($attrs["dk:gov:saml:attribute:$field_name"])) {
     if (is_array($attrs["dk:gov:saml:attribute:$field_name"]) && isset($attrs["dk:gov:saml:attribute:$field_name"][0])) {
       $field_value = $attrs["dk:gov:saml:attribute:$field_name"][0];
     }
