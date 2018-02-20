@@ -61,6 +61,15 @@ function drupal_nemid_webform_component_info() {
   );
   $components['nemid_cpr'] += $component_defaults;
 
+  //Person FIELDS - PID
+  $components['nemid_pid'] = array(
+    'label' => t('NemID PID'),
+    'description' => t('Create PID field.'),
+    'name' => 'nemid_pid',
+    'file' => 'components/nemid_pid.inc',
+  );
+  $components['nemid_pid'] += $component_defaults;
+
   //Person FIELDS - Name
   $components['nemid_name'] = array(
     'label' => t('NemID Name'),
@@ -105,6 +114,15 @@ function drupal_nemid_webform_component_info() {
     'file' => 'components/nemid_com_cvr.inc',
   );
   $components['nemid_com_cvr'] += $component_defaults;
+
+  //Company FIELDS - RID
+  $components['nemid_com_rid'] = array(
+    'label' => t('NemID Company RID'),
+    'description' => t('Create Company RID field.'),
+    'name' => 'nemid_com_rid',
+    'file' => 'components/nemid_com_rid.inc',
+  );
+  $components['nemid_com_rid'] += $component_defaults;
 
   //Company FIELDS - Name
   $components['nemid_com_name'] = array(
