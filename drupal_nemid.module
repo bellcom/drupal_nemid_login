@@ -160,6 +160,12 @@ function drupal_nemid_populate_fields_recursive(&$tree, $message) {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+      case 'nemid_pid':
+        $item['#value'] = $message['pid'];
+        if ($message['pid'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
       case 'nemid_address':
         $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
         $item['#value'] = $address_text;
@@ -188,6 +194,12 @@ function drupal_nemid_populate_fields_recursive(&$tree, $message) {
       case 'nemid_com_cvr':
         $item['#value'] = $message['cvr'];
         if ($message['cvr'] != '') {
+          $item['#attributes']['readonly'] = 'readonly';
+        }
+        break;
+      case 'nemid_com_rid':
+        $item['#value'] = $message['rid'];
+        if ($message['rid'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;

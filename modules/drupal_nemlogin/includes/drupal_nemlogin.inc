@@ -20,40 +20,35 @@ function getSimpleSamlAuth() {
 }
 
 /**
- * Function that attempts to fetch CPR from the SimpleAuth attibutes.
- * If CPR is fetch it is returned, otherwise NULL is returned.
+ * Function that attempts to fetch field from the SimpleAuth attibutes.with specific name, suffix with NumberIdentifier.
+ * E.g. if field name is "CPR", method will attempt to fetch dk:gov:saml:attribute:CprNumberIdentifier.
  *
- * @param $as
- * @return null
+ * If field value is fetch it is returned, otherwise NULL is returned.
+ *
+ * @param mixed $as
+ *   SimpleAuth valid object.
+ * @param string $field_name
+ *   Name of the field.
+ *
+ * @return string
+ *   Field value.
  */
-function attemptFetchCpr($as) {
+function attemptFetchNumberIdentifier($as, $field_name = 'cpr') {
+  // Make first char uppercase and suffixing with NumberIdentifier.
+  $field_name = ucfirst(strtolower($field_name));
+  $field_name .= 'NumberIdentifier';
+
   $attrs = $as->getAttributes();
-  $cpr = NULL;
-  if (is_array($attrs) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'])) {
-    if (is_array($attrs['dk:gov:saml:attribute:CprNumberIdentifier']) && isset($attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0])) {
-      $cpr = $attrs['dk:gov:saml:attribute:CprNumberIdentifier'][0];
+  $field_value = NULL;
+
+  if (is_array($attrs) && isset($attrs["dk:gov:saml:attribute:$field_name}"])) {
+    if (is_array($attrs["dk:gov:saml:attribute:$field_name"]) && isset($attrs["dk:gov:saml:attribute:$field_name"][0])) {
+      $field_value = $attrs["dk:gov:saml:attribute:$field_name"][0];
     }
   }
 
-  return $cpr;
+  return $field_value;
 }
 
-/**
- * Function that attempts to fetch CVR from the SimpleAuth attibutes.
- * If CVR is fetch it is returned, otherwise NULL is returned.
- *
- * @param $as
- * @return null
- */
-function attemptFetchCvr($as) {
-  $attrs = $as->getAttributes();
-  $cvr = NULL;
-  if (is_array($attrs) && isset($attrs['dk:gov:saml:attribute:CvrNumberIdentifier'])) {
-    if (is_array($attrs['dk:gov:saml:attribute:CvrNumberIdentifier']) && isset($attrs['dk:gov:saml:attribute:CvrNumberIdentifier'][0])) {
-      $cvr = $attrs['dk:gov:saml:attribute:CvrNumberIdentifier'][0];
-    }
-  }
 
-  return $cvr;
-}
 

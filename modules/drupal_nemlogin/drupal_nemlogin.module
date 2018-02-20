@@ -102,21 +102,24 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
           // Check if user is already authentificated.
           if ($as->isAuthenticated()) {
             // If CPR is fetched, prefill the form.
-            $cpr = attemptFetchCpr($as);
+            $cpr = attemptFetchNumberIdentifier($as, 'cpr');
             if ($cpr && module_exists('vcv_serviceplatformen')) {
               $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
               if ($serviceplaformen_message['status']) {
                 $serviceplaformen_message['cpr'] = $cpr;
+                $serviceplaformen_message['pid'] = attemptFetchNumberIdentifier($as, 'pid');
 
                 drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
 
             // If CVR is fetched, prefill the form.
-            $cvr = attemptFetchCvr($as);
+            $cvr = attemptFetchNumberIdentifier($as, 'cvr');
             if ($cvr && module_exists('cvr_serviceplatformen')) {
               $serviceplaformen_message = cvr_serviceplatformen_query_info($cvr);
               if ($serviceplaformen_message['status']) {
+                $serviceplaformen_message['rid'] = attemptFetchNumberIdentifier($as, 'rid');
+
                 drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
