@@ -351,6 +351,8 @@ function drupal_nemid_login_webform_view($variables) {
   }
   $block = '';
   $nid = $variables['webform']['#node']->nid;
+  $page_num = isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_num'] : 1;
+  $page_count =isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_count'] : null;
   if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']) && !$_SESSION['nemid_login']['message'])) {
     $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
     $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
@@ -367,8 +369,18 @@ function drupal_nemid_login_webform_view($variables) {
     }
   }
   if ($variables['webform']['#enabled']) {
-    //unsetting the message after it has been used once
-    unset($_SESSION['nemid_login']['message']);
+
+    if (!isset($variables['webform']["#form"]['progressbar'])) {
+      //unsetting the message after it has been used onced for non-multipage forms
+      unset($_SESSION['nemid_login']['message']);
+    }
+    else {
+      //unsetting the message after it has been used onced for multipage forms
+      if ($page_num == ($page_count - 1)) {
+        unset($_SESSION['nemid_login']['message']);
+      }
+    }
     return $block . drupal_render($variables['webform']['#form']);
   }
+
 }
