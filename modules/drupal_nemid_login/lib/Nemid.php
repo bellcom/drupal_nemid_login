@@ -1,8 +1,8 @@
 <?php
 namespace WAYF;
 
-require dirname(__FILE__).'/X509.php';
-require dirname(__FILE__).'/Ocsp.php';
+require dirname(__FILE__) . '/X509.php';
+require dirname(__FILE__) . '/Ocsp.php';
 
 class NemidLogin {
 

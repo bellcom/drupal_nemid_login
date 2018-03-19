@@ -1,0 +1,3 @@
+name = CVR Online service implementation
+description = provides CVR Onlne service "serviceplatformen.dk"
+core = 7.x

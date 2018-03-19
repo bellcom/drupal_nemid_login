@@ -1,6 +1,6 @@
 <?php
 namespace WAYF;
-require dirname(__FILE__).'/Oids.php';
+require dirname(__FILE__) . '/Oids.php';
 
 class Der extends Oids {
     protected $tag, $len, $value, $class, $constructed;
