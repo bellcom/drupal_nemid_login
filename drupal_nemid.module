@@ -162,7 +162,7 @@ function drupal_nemid_webform_component_info() {
  */
 function drupal_nemid_populate_fields_recursive(&$tree, $message) {
   foreach (array_keys($tree) as $item_key) {
-    if ($tree['#tree']) {
+   if ($tree[$item_key]['#tree'])  {
       $type = $tree[$item_key]['#webform_component']['type'];
       $item = & $tree[$item_key];
     }
