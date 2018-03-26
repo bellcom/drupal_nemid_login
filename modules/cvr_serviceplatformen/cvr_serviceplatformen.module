@@ -1,9 +1,9 @@
 <?php
+
 /**
  * @file
- * Implements CVR Online service from serviceplatformen.dk
+ * Implements CVR Online service from serviceplatformen.dk.
  *
- * @author Stanislav Kutasevits <stan@bellcom.dk>
  * @copyright 2018 OS2 - Offentligt Digitaliseringsfællesskab.
  */
 
@@ -18,7 +18,7 @@ function cvr_serviceplatformen_menu() {
     'description' => 'Settings for CVR Online 3.0 service serviceplatformen.dk',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('cvr_serviceplatformen_settings'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer site configuration'),
   );
 
   return $items;
@@ -60,7 +60,7 @@ function cvr_serviceplatformen_settings() {
     '#type' => 'radios',
     '#title' => t('Mode selector'),
     '#default_value' => variable_get('cvr_serviceplatformen_mode_selector', 0),
-    '#options' => array(0 => 'Live', 1 => 'Test'),
+    '#options' => array(0 => t('Live'), 1 => t('Test')),
   );
 
   $form['test_cvr_fieldset'] = array(
@@ -160,7 +160,9 @@ function cvr_serviceplatformen_settings() {
 
 /**
  * Extra submit handler for serviceplatformen settings.
- * Resets the test CVR as well as handles the relative/absolute wsdl path location.
+ *
+ * Resets the test CVR as well as handles
+ * the relative/absolute wsdl path location.
  */
 function cvr_serviceplatformen_settings_submit(&$form, &$form_state) {
   if ($form_state['values']['cvr_serviceplatformen_certfile_passphrase'] == '') {
@@ -168,8 +170,8 @@ function cvr_serviceplatformen_settings_submit(&$form, &$form_state) {
   }
 
   if ($cvr_serviceplatformen_wsdl = $form_state['values']['cvr_serviceplatformen_wsdl']) {
-    // If it is relative URL make is absolute
-    if (substr($cvr_serviceplatformen_wsdl, 0, 4 ) !== "http") {
+    // If it is relative URL make is absolute.
+    if (substr($cvr_serviceplatformen_wsdl, 0, 4) !== "http") {
       global $base_url, $base_path;
       $form_state['values']['cvr_serviceplatformen_wsdl'] = $base_url . $base_path . drupal_get_path('module', 'cvr_serviceplatformen') . '/' . $cvr_serviceplatformen_wsdl;
     }
@@ -199,7 +201,7 @@ function cvr_serviceplatformen_query_info($cvr) {
 
   if ($message['status']) {
     return array(
-      'mode' => variable_get('cvr_serviceplatformen_mode_selector')? 'test' : 'live',
+      'mode' => variable_get('cvr_serviceplatformen_mode_selector') ? 'test' : 'live',
       'status' => TRUE,
       'cvr' => $message['LegalUnitIdentifier'],
       'company_name' => $message['LegalUnitName']->name,

@@ -1,8 +1,6 @@
 name = NemID Login
 description = Provides a login box for NemID
 package = NemID
-version = 7.x-1.0-alpha8
 core = 7.x
-php = 5.2
 
 dependencies[] = nemid

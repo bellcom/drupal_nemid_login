@@ -45,15 +45,6 @@ function _webform_edit_nemid_com_name($component) {
     '#maxlength' => 1024,
     '#weight' => 0,
   );
-//  $form['get_from_cvrcpr'] = array(
-//    '#type' => 'checkbox',
-//    '#title' => t('Get from CPR'),
-//    '#return_value' => 1,
-//    '#description' => t('Get data from CPR and disable if data is available.'),
-//    '#weight' => 1,
-//    '#default_value' => $component['extra']['get_from_cpr'],
-//    '#parents' => array('extra', 'get_from_cpr'),
-//  );
   $form['display']['placeholder'] = array(
     '#type' => 'textfield',
     '#title' => t('Placeholder'),
@@ -91,7 +82,12 @@ function _webform_render_nemid_com_name($component, $value = NULL, $filter = TRU
     '#description' => $filter ? webform_filter_descriptions($component['extra']['description'], $node) : $component['extra']['description'],
     '#attributes' => $component['extra']['attributes'],
     '#theme_wrappers' => array('webform_element'),
-    '#translatable' => array('title', 'description', 'field_prefix', 'field_suffix'),
+    '#translatable' => array(
+      'title',
+      'description',
+      'field_prefix',
+      'field_suffix',
+    ),
   );
 
   if ($component['required']) {
@@ -182,7 +178,10 @@ function _webform_analysis_nemid_com_name($component, $sids = array(), $single =
   $rows[0] = array(t('Left Blank'), ($submissions - $nonblanks));
   $rows[1] = array(t('User entered value'), $nonblanks);
 
-  $other[] = array(t('Average submission length in words (ex blanks)'), ($nonblanks != 0 ? number_format($wordcount/$nonblanks, 2) : '0'));
+  $other[] = array(
+    t('Average submission length in words (ex blanks)'),
+    ($nonblanks != 0 ? number_format($wordcount / $nonblanks, 2) : '0'),
+  );
 
   return array(
     'table_rows' => $rows,
