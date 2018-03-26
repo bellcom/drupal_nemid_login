@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Nemlogin main module file.
+ */
+
 module_load_include('inc', 'nemlogin', 'includes/nemlogin');
 
 /**
@@ -6,8 +12,8 @@ module_load_include('inc', 'nemlogin', 'includes/nemlogin');
  */
 function nemlogin_menu() {
   $items['nemlogin/require/%'] = array(
-    'title' => t('Nemlogin require authentication'),
-    'description' => t('Nemlogin require authentication'),
+    'title' => 'Nemlogin require authentication',
+    'description' => 'Nemlogin require authentication',
     'page callback' => 'nemlogin_require_auth',
     'page arguments' => array(2),
     'access arguments' => array('access content'),
@@ -15,11 +21,11 @@ function nemlogin_menu() {
   );
 
   $items['admin/config/nemid/nemlogin'] = array(
-    'title' => t('Configure Nemlogin'),
-    'description' => t('Configure Nemlogin settings'),
+    'title' => 'Configure Nemlogin',
+    'description' => 'Configure Nemlogin settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('nemlogin_menu_settings_form'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -27,9 +33,7 @@ function nemlogin_menu() {
 }
 
 /**
- * Generates settings page for nemlogin
- *
- * @return mixed
+ * Nemlogin settings form definition.
  */
 function nemlogin_menu_settings_form() {
   $form = array();
@@ -50,11 +54,16 @@ function nemlogin_menu_settings_form() {
 }
 
 /**
- * Page callback.
- * Creates SimpleSAML_Auth_Simple, sets up return to url and requires the authentification (actual redirect to IDP)
+ * Nemlogin require authentication page callback.
  *
- * @param $nid
+ * Creates SimpleSAML_Auth_Simple, sets up return to url and requires
+ * the authentification (actual redirect to IDP)
+ *
+ * @param int $nid
+ *   NID.
+ *
  * @return string
+ *   Page response.
  */
 function nemlogin_require_auth($nid) {
   global $base_url;
@@ -62,17 +71,18 @@ function nemlogin_require_auth($nid) {
   $return_to_link = $base_url . $base_path . "node/$nid";
 
   try {
-    $as = getSimpleSamlAuth();
+    $as = get_simple_saml_auth();
     $as->requireAuth(
       array(
-        'ReturnTo' => $return_to_link
+        'ReturnTo' => $return_to_link,
       )
     );
-  } catch (Exception $e) {
-    watchdog("Nemlogin", t('Cannot initialize simplesaml request: ') .
-      $e->getMessage(), array(), WATCHDOG_ERROR);
+  }
+  catch (Exception $e) {
+    watchdog("Nemlogin", 'Cannot initialize simplesaml request: @message', array('@message' => $e->getMessage()), WATCHDOG_ERROR);
 
-    // If for some reason the redirect didn't happen automatically, go back to node
+    // If for some reason the redirect didn't happen automatically,
+    // go back to node.
     drupal_goto("node/$nid");
   }
 
@@ -98,28 +108,28 @@ function nemlogin_form_alter(&$form, &$form_state, $form_id) {
       $nid = $form['#node']->nid;
       if (variable_get('nemlogin_link_enable_' . $nid, 0)) {
         try {
-          $as = getSimpleSamlAuth();
+          $as = get_simple_saml_auth();
 
           // Check if user is already authentificated.
           if ($as->isAuthenticated()) {
             // If CPR is fetched, prefill the form.
-            $cpr = attemptFetchNumberIdentifier($as, 'cpr');
+            $cpr = attempt_fetch_number_identifier($as, 'cpr');
             if ($cpr && module_exists('vcv_serviceplatformen')) {
               $serviceplaformen_message = vcv_serviceplatformen_get_address($cpr);
               if ($serviceplaformen_message['status']) {
                 $serviceplaformen_message['cpr'] = $cpr;
-                $serviceplaformen_message['pid'] = attemptFetchNumberIdentifier($as, 'pid');
+                $serviceplaformen_message['pid'] = attempt_fetch_number_identifier($as, 'pid');
 
                 nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
 
             // If CVR is fetched, prefill the form.
-            $cvr = attemptFetchNumberIdentifier($as, 'cvr');
+            $cvr = attempt_fetch_number_identifier($as, 'cvr');
             if ($cvr && module_exists('cvr_serviceplatformen')) {
               $serviceplaformen_message = cvr_serviceplatformen_query_info($cvr);
               if ($serviceplaformen_message['status']) {
-                $serviceplaformen_message['rid'] = attemptFetchNumberIdentifier($as, 'rid');
+                $serviceplaformen_message['rid'] = attempt_fetch_number_identifier($as, 'rid');
 
                 nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
@@ -138,13 +148,16 @@ function nemlogin_form_alter(&$form, &$form_state, $form_id) {
           else {
             // If modify form to include the link for authentification.
             $form['submitted'][] = array(
-              '#markup' => l('Login med Nemlogin', 'nemlogin/require/' . $nid),
+              '#markup' => l(
+                t('Login med Nemlogin'),
+                'nemlogin/require/' . $nid
+              ),
               '#weight' => -99,
             );
           }
-        } catch (Exception $e) {
-          watchdog("Nemlogin", t('Cannot initialize simplesaml request: ') .
-            $e->getMessage(), array(), WATCHDOG_ERROR);
+        }
+        catch (Exception $e) {
+          watchdog("Nemlogin", 'Cannot initialize simplesaml request: @message', array('@message' => $e->getMessage()), WATCHDOG_ERROR);
         }
       }
 
@@ -153,7 +166,7 @@ function nemlogin_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Save webform configuration
+ * Save webform configuration.
  */
 function nemlogin_webform_configure_save($form, &$form_state) {
   $login_block_enable = $form_state['values']['nemlogin_link_enable_' . $form['nid']['#value']];

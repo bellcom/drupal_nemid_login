@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Contains SOAP related functions.
+ */
+
+/**
  * Performs getLegalUnit query.
  */
 function cvr_serviceplatformen_get_legal_unit($cvr) {
@@ -21,7 +26,8 @@ function cvr_serviceplatformen_get_legal_unit($cvr) {
 
     $response['status'] = TRUE;
     return $response;
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     list($fault, $message) = explode(':', $e->faultstring);
 
     if (!$message) {
@@ -36,9 +42,10 @@ function cvr_serviceplatformen_get_legal_unit($cvr) {
 }
 
 /**
- * Creates and returns the creates SOAP client
+ * Creates and returns the creates SOAP client.
  *
  * @return SoapClient
+ *   The SOAP Client object.
  */
 function cvr_serviceplatformen_get_client() {
   $mode = variable_get('cvr_serviceplatformen_mode_selector');
@@ -61,6 +68,7 @@ function cvr_serviceplatformen_get_client() {
  * Prepares and returns request to SOAP by filling in the auth parameters.
  *
  * @return array
+ *   The request array.
  */
 function cvr_serviceplatformen_initiate_request() {
   $serviceagreementuuid = variable_get('cvr_serviceplatformen_serviceagreementuuid');

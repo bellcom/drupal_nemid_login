@@ -1,9 +1,12 @@
 <?php
 
 /**
- * Implement hook_menu().
- *
- * @return array
+ * @file
+ * NemID Integration main module file.
+ */
+
+/**
+ * Implements hook_menu().
  */
 function nemid_menu() {
   $items = array();
@@ -12,7 +15,7 @@ function nemid_menu() {
     'title' => 'NemID Settings',
     'position' => 'right',
     'weight' => -15,
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer site configuration'),
     'page callback' => 'system_admin_menu_block_page',
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -22,12 +25,10 @@ function nemid_menu() {
   return $items;
 }
 
-
 /**
  * Implements hook_webform_componen_info().
- * Describes multiple nemid fields that can be used in the webforms.
  *
- * @return array
+ * Describes multiple nemid fields that can be used in the webforms.
  */
 function nemid_webform_component_info() {
   $components = array();
@@ -52,7 +53,7 @@ function nemid_webform_component_info() {
     ),
   );
 
-  //Person FIELDS - CPR
+  // Person FIELDS - CPR.
   $components['nemid_cpr'] = array(
     'label' => t('NemID CPR'),
     'description' => t('Create CPR field.'),
@@ -61,7 +62,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_cpr'] += $component_defaults;
 
-  //Person FIELDS - PID
+  // Person FIELDS - PID.
   $components['nemid_pid'] = array(
     'label' => t('NemID PID'),
     'description' => t('Create PID field.'),
@@ -70,7 +71,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_pid'] += $component_defaults;
 
-  //Person FIELDS - Name
+  // Person FIELDS - Name.
   $components['nemid_name'] = array(
     'label' => t('NemID Name'),
     'description' => t('Create NemID name field.'),
@@ -79,7 +80,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_name'] += $component_defaults;
 
-  //Person FIELDS - CO Address
+  // Person FIELDS - CO Address.
   $components['nemid_coaddress'] = array(
     'label' => t('NemID C/O address'),
     'description' => t('Create NemID C/O-address field.'),
@@ -88,7 +89,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_coaddress'] += $component_defaults;
 
-  //Person FIELDS - Address
+  // Person FIELDS - Address.
   $components['nemid_address'] = array(
     'label' => t('NemID Address'),
     'description' => t('Create NemID address field.'),
@@ -97,7 +98,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_address'] += $component_defaults;
 
-  //Person FIELDS - City
+  // Person FIELDS - City.
   $components['nemid_city'] = array(
     'label' => t('NemID Postal / City'),
     'description' => t('Create NemID Postal code / city field.'),
@@ -106,7 +107,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_city'] += $component_defaults;
 
-  //Company FIELDS - CVR
+  // Company FIELDS - CVR.
   $components['nemid_com_cvr'] = array(
     'label' => t('NemID Company CVR'),
     'description' => t('Create Company CVR field.'),
@@ -115,7 +116,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_com_cvr'] += $component_defaults;
 
-  //Company FIELDS - RID
+  // Company FIELDS - RID.
   $components['nemid_com_rid'] = array(
     'label' => t('NemID Company RID'),
     'description' => t('Create Company RID field.'),
@@ -124,7 +125,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_com_rid'] += $component_defaults;
 
-  //Company FIELDS - Name
+  // Company FIELDS - Name.
   $components['nemid_com_name'] = array(
     'label' => t('NemID Company Name'),
     'description' => t('Create Company Name field.'),
@@ -133,7 +134,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_com_name'] += $component_defaults;
 
-  //Company FIELDS - Address
+  // Company FIELDS - Address.
   $components['nemid_com_addr'] = array(
     'label' => t('NemID Company Address'),
     'description' => t('Create Company address field.'),
@@ -142,7 +143,7 @@ function nemid_webform_component_info() {
   );
   $components['nemid_com_addr'] += $component_defaults;
 
-  //Company FIELDS - City
+  // Company FIELDS - City.
   $components['nemid_com_city'] = array(
     'label' => t('NemID Company Postal / City'),
     'description' => t('Create Company city field.'),
@@ -155,14 +156,18 @@ function nemid_webform_component_info() {
 }
 
 /**
- * Updating fields with the values from nemlogin request, works also with the nested structure
+ * Updating fields with the values from nemlogin request.
  *
- * @param $tree
- * @param $message
+ * Works also with the nested structure.
+ *
+ * @param array $tree
+ *   Tree of webform elements.
+ * @param array $message
+ *   Array with messages.
  */
-function nemid_populate_fields_recursive(&$tree, $message) {
+function nemid_populate_fields_recursive(array &$tree, array $message) {
   foreach (array_keys($tree) as $item_key) {
-   if ($tree[$item_key]['#tree'])  {
+    if ($tree[$item_key]['#tree']) {
       $type = $tree[$item_key]['#webform_component']['type'];
       $item = & $tree[$item_key];
     }
@@ -178,12 +183,14 @@ function nemid_populate_fields_recursive(&$tree, $message) {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_pid':
         $item['#value'] = $message['pid'];
         if ($message['pid'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_address':
         $address_text = $message['road'] . ' ' . $message['road_no'] . ' ' . $message['floor'] . ' ' . $message['door'];
         $item['#value'] = $address_text;
@@ -191,48 +198,56 @@ function nemid_populate_fields_recursive(&$tree, $message) {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_coaddress':
         $item['#value'] = $message['coname'];
         if ($message['coname'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_name':
         $item['#value'] = $message['name'];
         if ($message['name'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_city':
         $item['#value'] = $message['zipcode'] . ' ' . $message['city'];
         if ($message['zipcode'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_com_cvr':
         $item['#value'] = $message['cvr'];
         if ($message['cvr'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_com_rid':
         $item['#value'] = $message['rid'];
         if ($message['rid'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_com_name':
         $item['#value'] = $message['company_name'];
         if ($message['company_name'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_com_addr':
         $item['#value'] = $message['company_street'] . ' ' . $message['company_house_nr'] . ' ' . $message['company_floor'];
         if ($message['company_street'] != '') {
           $item['#attributes']['readonly'] = 'readonly';
         }
         break;
+
       case 'nemid_com_city':
         $item['#value'] = $message['company_zipcode'] . ' ' . $message['company_city'];
         if ($message['company_zipcode'] != '') {

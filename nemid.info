@@ -1,9 +1,7 @@
 name = NemID integration
 description = Provides multiple login integrations with NemID
 package = NemID
-version = 7.x-1.0-alpha1
 core = 7.x
-php = 5.2
 
 dependencies[] = securepages
 dependencies[] = webform (>=7.x-4.12)

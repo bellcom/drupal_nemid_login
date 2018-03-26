@@ -1,3 +1,10 @@
+<?php
+
+/**
+ * @file
+ * NemID Login block template.
+ */
+?>
 <script type="text/x-nemid" id="nemid_parameters"><?php echo $params;?></script>
 <script>
  function onNemIDMessage(e) {
@@ -37,13 +44,13 @@ if (!isset($_SESSION['nemid_login']['errors'])) {
 ?>
 
 <iframe id="nemid_iframe" title="NemID" allowfullscreen="true" scrolling="no" frameborder="0" style="width:300px;height:450px;border:0; display:inline-block" src="<?php echo $settings['iframe_url']; ?>"></iframe>
-<div style="display:inline-block; vertical-align: top; width: 500px"><?php echo ($help)? $help['value'] : '' ?></div>
+<div style="display:inline-block; vertical-align: top; width: 500px"><?php echo ($help) ? $help['value'] : '' ?></div>
 <form name="postBackForm" action="<?php
 
   if (isset($nid) && is_numeric($nid)) {
     $node = node_load($nid);
     if ($node->type == 'webform') {
-      echo url('node/'.$nid);
+      echo url('node/' . $nid);
     }
   }
   else {
