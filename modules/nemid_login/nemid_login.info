@@ -1,8 +1,8 @@
-name = Drupal NemID Login
+name = NemID Login
 description = Provides a login box for NemID
-package = Bellcom
+package = NemID
 version = 7.x-1.0-alpha8
 core = 7.x
 php = 5.2
 
-dependencies[] = drupal_nemid
+dependencies[] = nemid

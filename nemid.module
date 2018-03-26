@@ -5,11 +5,11 @@
  *
  * @return array
  */
-function drupal_nemid_menu() {
+function nemid_menu() {
   $items = array();
 
-  $items['admin/config/drupal_nemid'] = array(
-    'title' => 'Drupal NemID Settings',
+  $items['admin/config/nemid'] = array(
+    'title' => 'NemID Settings',
     'position' => 'right',
     'weight' => -15,
     'access arguments' => array('access administration pages'),
@@ -29,7 +29,7 @@ function drupal_nemid_menu() {
  *
  * @return array
  */
-function drupal_nemid_webform_component_info() {
+function nemid_webform_component_info() {
   $components = array();
   $component_defaults = array(
     'form_key' => NULL,
@@ -160,7 +160,7 @@ function drupal_nemid_webform_component_info() {
  * @param $tree
  * @param $message
  */
-function drupal_nemid_populate_fields_recursive(&$tree, $message) {
+function nemid_populate_fields_recursive(&$tree, $message) {
   foreach (array_keys($tree) as $item_key) {
    if ($tree[$item_key]['#tree'])  {
       $type = $tree[$item_key]['#webform_component']['type'];
@@ -248,7 +248,7 @@ function drupal_nemid_populate_fields_recursive(&$tree, $message) {
     if (isset($tree[$item_key]['#webform_component'])) {
       if (!empty($tree[$item_key]['#webform_component']['children'])) {
         foreach ($tree[$item_key]['#webform_component']['children'] as $child) {
-          drupal_nemid_populate_fields_recursive($tree[$item_key][$child['form_key']], $message);
+          nemid_populate_fields_recursive($tree[$item_key][$child['form_key']], $message);
         }
       }
     }

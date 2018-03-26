@@ -13,7 +13,7 @@ module_load_include('inc', 'cvr_serviceplatformen', 'includes/cvr_serviceplatfor
  * Implements hook_menu().
  */
 function cvr_serviceplatformen_menu() {
-  $items['admin/config/drupal_nemid/cvr_serviceplatformen'] = array(
+  $items['admin/config/nemid/cvr_serviceplatformen'] = array(
     'title' => 'CVR Online 3.0 settings',
     'description' => 'Settings for CVR Online 3.0 service serviceplatformen.dk',
     'page callback' => 'drupal_get_form',

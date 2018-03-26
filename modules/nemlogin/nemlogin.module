@@ -1,24 +1,24 @@
 <?php
-module_load_include('inc', 'drupal_nemlogin', 'includes/drupal_nemlogin');
+module_load_include('inc', 'nemlogin', 'includes/nemlogin');
 
 /**
  * Implements hook_menu().
  */
-function drupal_nemlogin_menu() {
+function nemlogin_menu() {
   $items['nemlogin/require/%'] = array(
     'title' => t('Nemlogin require authentication'),
     'description' => t('Nemlogin require authentication'),
-    'page callback' => 'drupal_nemlogin_require_auth',
+    'page callback' => 'nemlogin_require_auth',
     'page arguments' => array(2),
     'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/config/drupal_nemid/nemlogin'] = array(
+  $items['admin/config/nemid/nemlogin'] = array(
     'title' => t('Configure Nemlogin'),
     'description' => t('Configure Nemlogin settings'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('drupal_nemlogin_menu_settings_form'),
+    'page arguments' => array('nemlogin_menu_settings_form'),
     'access arguments' => array('access administration pages'),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -31,19 +31,19 @@ function drupal_nemlogin_menu() {
  *
  * @return mixed
  */
-function drupal_nemlogin_menu_settings_form() {
+function nemlogin_menu_settings_form() {
   $form = array();
 
-  $form['drupal_nemlogin_simplesaml_installdir'] = array(
+  $form['nemlogin_simplesaml_installdir'] = array(
     '#type' => 'textfield',
     '#title' => t('Full path to simplesaml installation'),
-    '#default_value' => variable_get('drupal_nemlogin_simplesaml_installdir'),
+    '#default_value' => variable_get('nemlogin_simplesaml_installdir'),
   );
 
-  $form['drupal_nemlogin_simplesaml_default_auth'] = array(
+  $form['nemlogin_simplesaml_default_auth'] = array(
     '#type' => 'textfield',
     '#title' => t('Simplesaml default auth method'),
-    '#default_value' => variable_get('drupal_nemlogin_simplesaml_default_auth', 'default-sp'),
+    '#default_value' => variable_get('nemlogin_simplesaml_default_auth', 'default-sp'),
   );
 
   return system_settings_form($form);
@@ -56,7 +56,7 @@ function drupal_nemlogin_menu_settings_form() {
  * @param $nid
  * @return string
  */
-function drupal_nemlogin_require_auth($nid) {
+function nemlogin_require_auth($nid) {
   global $base_url;
   global $base_path;
   $return_to_link = $base_url . $base_path . "node/$nid";
@@ -69,7 +69,8 @@ function drupal_nemlogin_require_auth($nid) {
       )
     );
   } catch (Exception $e) {
-    watchdog("Drupal nemlogin", t('Cannot initialize simplesaml request: ') . $e->getMessage(), array(), WATCHDOG_ERROR);
+    watchdog("Nemlogin", t('Cannot initialize simplesaml request: ') .
+      $e->getMessage(), array(), WATCHDOG_ERROR);
 
     // If for some reason the redirect didn't happen automatically, go back to node
     drupal_goto("node/$nid");
@@ -81,21 +82,21 @@ function drupal_nemlogin_require_auth($nid) {
 /**
  * Implements hook_form_alter().
  */
-function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
+function nemlogin_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'webform_configure_form':
 
-      $form['advanced']['drupal_nemlogin_link_enable_' . $form['nid']['#value']] = array(
+      $form['advanced']['nemlogin_link_enable_' . $form['nid']['#value']] = array(
         '#type' => 'checkbox',
         '#title' => t('Include nemlogin link'),
-        '#default_value' => variable_get('drupal_nemlogin_link_enable_' . $form['nid']['#value'], 0),
+        '#default_value' => variable_get('nemlogin_link_enable_' . $form['nid']['#value'], 0),
       );
-      $form['#submit'][] = 'drupal_nemlogin_webform_configure_save';
+      $form['#submit'][] = 'nemlogin_webform_configure_save';
       break;
 
     case strstr($form_id, 'webform_client_form'):
       $nid = $form['#node']->nid;
-      if (variable_get('drupal_nemlogin_link_enable_' . $nid, 0)) {
+      if (variable_get('nemlogin_link_enable_' . $nid, 0)) {
         try {
           $as = getSimpleSamlAuth();
 
@@ -109,7 +110,7 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
                 $serviceplaformen_message['cpr'] = $cpr;
                 $serviceplaformen_message['pid'] = attemptFetchNumberIdentifier($as, 'pid');
 
-                drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
+                nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
 
@@ -120,7 +121,7 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
               if ($serviceplaformen_message['status']) {
                 $serviceplaformen_message['rid'] = attemptFetchNumberIdentifier($as, 'rid');
 
-                drupal_nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
+                nemid_populate_fields_recursive($form['submitted'], $serviceplaformen_message);
               }
             }
 
@@ -142,7 +143,8 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
             );
           }
         } catch (Exception $e) {
-          watchdog("Drupal nemlogin", t('Cannot initialize simplesaml request: ') . $e->getMessage(), array(), WATCHDOG_ERROR);
+          watchdog("Nemlogin", t('Cannot initialize simplesaml request: ') .
+            $e->getMessage(), array(), WATCHDOG_ERROR);
         }
       }
 
@@ -153,7 +155,7 @@ function drupal_nemlogin_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Save webform configuration
  */
-function drupal_nemlogin_webform_configure_save($form, &$form_state) {
-  $login_block_enable = $form_state['values']['drupal_nemlogin_link_enable_' . $form['nid']['#value']];
-  variable_set('drupal_nemlogin_link_enable_' . $form['nid']['#value'], $login_block_enable);
+function nemlogin_webform_configure_save($form, &$form_state) {
+  $login_block_enable = $form_state['values']['nemlogin_link_enable_' . $form['nid']['#value']];
+  variable_set('nemlogin_link_enable_' . $form['nid']['#value'], $login_block_enable);
 }

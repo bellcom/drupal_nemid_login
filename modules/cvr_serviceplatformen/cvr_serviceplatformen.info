@@ -1,3 +1,6 @@
 name = CVR Online service implementation
-description = provides CVR Onlne service "serviceplatformen.dk"
+description = Provides CVR Online service "serviceplatformen.dk"
+package = NemID
 core = 7.x
+
+dependencies[] = nemid

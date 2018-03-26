@@ -1,6 +1,6 @@
-name = Drupal NemID
+name = NemID integration
 description = Provides multiple login integrations with NemID
-package = Bellcom
+package = NemID
 version = 7.x-1.0-alpha1
 core = 7.x
 php = 5.2
