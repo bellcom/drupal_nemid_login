@@ -13,10 +13,10 @@ require dirname(__FILE__) . '/lib/Nemid.php';
 /**
  * Implements hook_menu().
  */
-function drupal_nemid_login_menu() {
+function nemid_login_menu() {
   $items['nemid'] = array(
     'title'            => t('NemID login page'),
-    'page callback'    => '_drupal_nemid_login_page',
+    'page callback'    => '_nemid_login_page',
     'page arguments'   => array(),
     'access arguments' => array('View published content'),
     'type'             => MENU_CALLBACK,
@@ -24,17 +24,17 @@ function drupal_nemid_login_menu() {
 
   $items['nemid/verify'] = array(
     'title'            => t('NemID login verify'),
-    'page callback'    => '_drupal_nemid_login_verify',
+    'page callback'    => '_nemid_login_verify',
     'page arguments'   => array(),
     'access arguments' => array('access content'),
     'type'             => MENU_CALLBACK,
   );
 
-  $items['admin/config/drupal_nemid/nemid_login'] = array(
+  $items['admin/config/nemid/nemid_login'] = array(
     'title'            => t('Configure NemID login block'),
     'description'      => t('Configure NemID login block settings'),
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('_drupal_nemid_login_admin'),
+    'page arguments'   => array('_nemid_login_admin'),
     'access arguments' => array('access administration pages'),
     'type'             => MENU_NORMAL_ITEM,
   );
@@ -45,7 +45,7 @@ function drupal_nemid_login_menu() {
 /**
  * Implements hook_block_info().
  */
-function drupal_nemid_login_block_info() {
+function nemid_login_block_info() {
   $blocks['nemid_login'] = array(
     'info' => t('NemID login block'),
     'cache' => DRUPAL_NO_CACHE,
@@ -57,7 +57,7 @@ function drupal_nemid_login_block_info() {
 /**
  * Implements hook_block_view().
  */
-function drupal_nemid_login_block_view($delta = '') {
+function nemid_login_block_view($delta = '') {
   // TODO: <meta http-equiv="X-UA-Compatible" content="IE=edge">
   // see http://www.nets.eu/dk-da/Service/kundeservice/nemid-tu/NemID-tjenesteudbyderpakken-okt-2014/Documents/NemID%20Integration%20-%20OCES.pdf
 
@@ -66,8 +66,8 @@ function drupal_nemid_login_block_view($delta = '') {
     case 'nemid_login':
       $block['subject'] = t('NemID Login');
       $block['content'] = theme('nemid_login_block', array(
-        'params' => _drupal_nemid_login_get_params(),
-        'settings' => _drupal_nemid_login_get_settings(),
+        'params' => _nemid_login_get_params(),
+        'settings' => _nemid_login_get_settings(),
         'help' => variable_get('nemid_login_form_help', "")
       ));
     break;
@@ -76,10 +76,10 @@ function drupal_nemid_login_block_view($delta = '') {
   return $block;
 }
 
-function _drupal_nemid_login_page() {
+function _nemid_login_page() {
   return theme('nemid_login_block', array(
-    'params' => _drupal_nemid_login_get_params(),
-    'settings' => _drupal_nemid_login_get_settings(),
+    'params' => _nemid_login_get_params(),
+    'settings' => _nemid_login_get_settings(),
     'help' => (variable_get('nemid_login_form_help'))? variable_get('nemid_login_form_help')['value'] : null,
   ));
 }
@@ -87,18 +87,18 @@ function _drupal_nemid_login_page() {
 /**
  * Implements hook_theme().
  */
-function drupal_nemid_login_theme(&$existing, $type, $theme, $path) {
+function nemid_login_theme(&$existing, $type, $theme, $path) {
   return array(
     'nemid_login_block' => array(
-      'path'      => drupal_get_path('module', 'drupal_nemid_login') . '/templates',
+      'path'      => drupal_get_path('module', 'nemid_login') . '/templates',
       'template'  => 'block',
       'variables' => array('params' => NULL, 'settings' => NULL, 'help' => NULL),
     ),
     'webform_view' => array(
       //'render element' => 'content',
       //'base hook' => 'node',
-      'function' => 'drupal_nemid_login_webform_view',
-      'theme path' => drupal_get_path('module', 'drupal_nemid_login'),
+      'function' => 'nemid_login_webform_view',
+      'theme path' => drupal_get_path('module', 'nemid_login'),
     ),
   );
 
@@ -113,9 +113,9 @@ function stripCertificate($toBeStripped) {
   return $result;
 }
 
-function _drupal_nemid_login_get_params() {
+function _nemid_login_get_params() {
   $nemidlogin = new WAYF\nemidlogin();
-  $config = _drupal_nemid_login_get_config_object();
+  $config = _nemid_login_get_config_object();
   $oldParams = $nemidlogin->prepareparamsfornemid($config);
 
   $millisec = strval(intval(microtime(true))*1000);
@@ -148,7 +148,7 @@ function _drupal_nemid_login_get_params() {
   return $encodedParams;
 }
 
-function _drupal_nemid_login_get_settings() {
+function _nemid_login_get_settings() {
   $millisec = round(microtime(TRUE) * 1000);
 
   $variablePrefix = 'nemid_login_';
@@ -165,7 +165,7 @@ function _drupal_nemid_login_get_settings() {
   return $settings;
 }
 
-function _drupal_nemid_login_verify() {
+function _nemid_login_verify() {
   $DISABLE_OCSP_CHECK = TRUE;
   $message = '';
 
@@ -203,7 +203,7 @@ function _drupal_nemid_login_verify() {
         $subject = end($certificate['tbsCertificate']['subject']);
         $pid = $subject['serialNumber'];
         $cn = $subject['commonName'];
-        $config = _drupal_nemid_login_get_config_object();
+        $config = _nemid_login_get_config_object();
         $cpr = $nemid->pidCprRequest($config, $pid);
 
         // Use serviceplatform to get address and other info.
@@ -226,7 +226,7 @@ function _drupal_nemid_login_verify() {
   }
 }
 
-function _drupal_nemid_login_admin() {
+function _nemid_login_admin() {
   $form = array();
 
   $variablePrefix = 'nemid_login_';
@@ -287,7 +287,7 @@ function _drupal_nemid_login_admin() {
   return system_settings_form($form);
 }
 
-function _drupal_nemid_login_get_config_object() {
+function _nemid_login_get_config_object() {
   $variablePrefix = 'nemid_login_';
   $mode = variable_get($variablePrefix.'mode', 'test');
   $search  = array("\r\n", "-----BEGIN CERTIFICATE-----\n", "\n-----END CERTIFICATE-----\n");
@@ -315,7 +315,7 @@ function _drupal_nemid_login_get_config_object() {
 /**
  * Implements hook_form_alter().
  */
-function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
+function nemid_login_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'webform_configure_form':
 
@@ -324,7 +324,7 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Include nemid login block'),
         '#default_value' => variable_get('nemid_login_block_enable_' . $form['nid']['#value'], 0),
       );
-      $form['#submit'][] = 'drupal_nemid_login_webform_configure_save';
+      $form['#submit'][] = 'nemid_login_webform_configure_save';
       break;
 
     case strstr($form_id, 'webform_client_form'):
@@ -335,7 +335,7 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Save webform configuration
  */
-function drupal_nemid_login_webform_configure_save($form, &$form_state) {
+function nemid_login_webform_configure_save($form, &$form_state) {
   $login_block_enable = 0;
   $login_block_enable = $form_state['values']['nemid_login_block_enable_' . $form['nid']['#value']];
   variable_set('nemid_login_block_enable_' . $form['nid']['#value'], $login_block_enable);
@@ -344,7 +344,7 @@ function drupal_nemid_login_webform_configure_save($form, &$form_state) {
 /**
  * Webform_view theme function.
  */
-function drupal_nemid_login_webform_view($variables) {
+function nemid_login_webform_view($variables) {
   // Destroy the session if there is an error, get login block again.
   if (isset($_SESSION['nemid_login']['errors'])) {
     session_destroy();
@@ -354,18 +354,18 @@ function drupal_nemid_login_webform_view($variables) {
   $page_num = isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_num'] : 1;
   $page_count =isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_count'] : null;
   if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']) && !$_SESSION['nemid_login']['message'])) {
-    $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
+    $nemid_login_block = block_load('nemid_login', 'nemid_login');
     $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
     $block = drupal_render($output);
   }
   elseif (isset($_POST['response'])) {
     // Get address from serverplatformen by CPR request.
-    $message = _drupal_nemid_login_verify();
+    $message = _nemid_login_verify();
 
     if ($message['status']) {
-      drupal_nemid_populate_fields_recursive($variables['webform']['#form']['submitted'], $message);
+      nemid_populate_fields_recursive($variables['webform']['#form']['submitted'], $message);
     } else {
-      watchdog("Drupal Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
+      watchdog("Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
     }
   }
   if ($variables['webform']['#enabled']) {

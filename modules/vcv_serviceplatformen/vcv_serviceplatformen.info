@@ -1,3 +1,6 @@
 name = Valghalla CPR Validator service: Serviceplatformen
 description = provides CPR service "serviceplatformen.dk"
+package = NemID
 core = 7.x
+
+dependencies[] = nemid

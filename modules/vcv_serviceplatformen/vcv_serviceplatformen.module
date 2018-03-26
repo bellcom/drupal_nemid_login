@@ -12,7 +12,7 @@
  * Implements hook_menu().
  */
 function vcv_serviceplatformen_menu() {
-  $items['admin/config/drupal_nemid/vcv_serviceplatformen'] = array(
+  $items['admin/config/nemid/vcv_serviceplatformen'] = array(
     'title' => 'CPRBasicInformation settings',
     'description' => 'Settings for CPRBasicInformation service serviceplatformen.dk',
     'page callback' => 'drupal_get_form',
