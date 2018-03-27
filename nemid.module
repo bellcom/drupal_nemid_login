@@ -5,6 +5,8 @@
  * NemID Integration main module file.
  */
 
+module_load_include('inc', 'nemid', 'components/nemid_com_tpl');
+
 /**
  * Implements hook_menu().
  */
@@ -26,7 +28,7 @@ function nemid_menu() {
 }
 
 /**
- * Implements hook_webform_componen_info().
+ * Implements hook_webform_component_info().
  *
  * Describes multiple nemid fields that can be used in the webforms.
  */
