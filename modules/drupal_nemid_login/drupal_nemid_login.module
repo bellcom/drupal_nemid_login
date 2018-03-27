@@ -95,7 +95,6 @@ function drupal_nemid_login_theme(&$existing, $type, $theme, $path) {
       'variables' => array('params' => NULL, 'settings' => NULL, 'help' => NULL),
     ),
   );
-
 }
 
 function stripCertificate($toBeStripped) {
@@ -328,10 +327,8 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
       }
       $block = '';
       $nid = $form['#node']->nid;
-      //TODO change progressbar
-      //TODO change page_num and page_count
-      $page_num = isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_num'] : 1;
-      $page_count =isset($variables['webform']["#form"]['progressbar']) ? $variables['webform']["#form"]['progressbar']['#page_count'] : null;
+      $page_num = isset($form['progressbar']) ? $form['progressbar']['#page_num'] : 1;
+      $page_count =isset($form['progressbar']) ? $form['progressbar']['#page_count'] : null;
 
       if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']) && !$_SESSION['nemid_login']['message'])) {
         $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
@@ -348,11 +345,11 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
           watchdog("Drupal Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
         }
       }
-
+dpm($form['#node']->status);
       //TODO change enabled
-      //if ($variables['webform']['#enabled']) {
+      if ($form['#node']->status === 1) {
         //TODO change progressbar
-        if (!isset($variables['webform']["#form"]['progressbar'])) {
+        if (!isset($form['progressbar'])) {
           //unsetting the message after it has been used once for non-multipage forms
           unset($_SESSION['nemid_login']['message']);
         }
@@ -366,7 +363,7 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
           '#weight' => -999,
           '#markup' => $block,
         );
-      //}
+      }
         break;
   }
 }
