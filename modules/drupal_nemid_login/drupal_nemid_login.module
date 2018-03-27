@@ -345,8 +345,7 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
           watchdog("Drupal Nemid Login", t('Message status is empty'), array(), WATCHDOG_DEBUG);
         }
       }
-dpm($form['#node']->status);
-      //TODO change enabled
+
       if ($form['#node']->status === 1) {
         //TODO change progressbar
         if (!isset($form['progressbar'])) {
