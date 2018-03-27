@@ -329,7 +329,6 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
       $nid = $form['#node']->nid;
       $page_num = isset($form['progressbar']) ? $form['progressbar']['#page_num'] : 1;
       $page_count =isset($form['progressbar']) ? $form['progressbar']['#page_count'] : null;
-
       if (variable_get('nemid_login_block_enable_' . $nid, 0) && (!isset($_POST['response']) && !$_SESSION['nemid_login']['message'])) {
         $nemid_login_block = block_load('drupal_nemid_login', 'nemid_login');
         $output = _block_get_renderable_array(_block_render_blocks(array($nemid_login_block)));
@@ -358,12 +357,12 @@ function drupal_nemid_login_form_alter(&$form, &$form_state, $form_id) {
             unset($_SESSION['nemid_login']['message']);
           }
         }
-        $form['submitted'][] = array(
-          '#weight' => -999,
-          '#markup' => $block,
-        );
       }
-        break;
+      $form['submitted'][] = array(
+        '#weight' => -999,
+        '#markup' => $block,
+      );
+      break;
   }
 }
 /**
