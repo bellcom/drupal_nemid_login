@@ -65,10 +65,19 @@ function drupal_nemid_login_block_view($delta = '') {
   switch ($delta) {
     case 'nemid_login':
       $block['subject'] = t('NemID Login');
+      $help = null;
+      if (variable_get('nemid_login_form_help')) {
+        if (is_array(variable_get('nemid_login_form_help')) && isset(variable_get('nemid_login_form_help')['value'])) {
+          $help = variable_get('nemid_login_form_help')['value'];
+        }
+        else {
+          $help = variable_get('nemid_login_form_help');
+        }
+      }
       $block['content'] = theme('nemid_login_block', array(
         'params' => _drupal_nemid_login_get_params(),
         'settings' => _drupal_nemid_login_get_settings(),
-        'help' => variable_get('nemid_login_form_help', "")
+        'help' => $help
       ));
       break;
   }
@@ -77,10 +86,19 @@ function drupal_nemid_login_block_view($delta = '') {
 }
 
 function _drupal_nemid_login_page() {
+  $help = null;
+  if (variable_get('nemid_login_form_help')) {
+    if (is_array(variable_get('nemid_login_form_help')) && isset(variable_get('nemid_login_form_help')['value'])) {
+      $help = variable_get('nemid_login_form_help')['value'];
+    }
+    else {
+      $help = variable_get('nemid_login_form_help');
+    }
+  }
   return theme('nemid_login_block', array(
     'params' => _drupal_nemid_login_get_params(),
     'settings' => _drupal_nemid_login_get_settings(),
-    'help' => (variable_get('nemid_login_form_help'))? variable_get('nemid_login_form_help')['value'] : null,
+    'help' => $help,
   ));
 }
 
