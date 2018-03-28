@@ -6,6 +6,7 @@ core = 7.x
 php = 5.2
 
 dependencies[] = securepages
+dependencies[] = token
 dependencies[] = webform (>=7.x-4.12)
 dependencies[] = webform_ssl
 dependencies[] = webform_encrypt
