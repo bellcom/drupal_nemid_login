@@ -28,7 +28,7 @@ function _webform_edit_nemid_cpr($component) {
  * Implements _webform_render_component().
  */
 function _webform_render_nemid_cpr($component, $value = NULL, $filter = TRUE, $submission = NULL) {
-  $element = nemid_webform_render_nemid_com_name($component, $value, $filter, $submission);
+  $element = nemid_webform_render_component($component, $value, $filter, $submission);
 
   if (isset($_SESSION['nemid_login']['cpr'])) {
     $element['#default_value'] = $_SESSION['nemid_login']['cpr'];

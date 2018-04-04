@@ -27,6 +27,8 @@ function nemid_webform_defaults_component() {
       'attributes' => array(),
       'private' => FALSE,
       'analysis' => FALSE,
+      'field_prefix' => '',
+      'field_suffix' => '',
     ),
   );
 }
@@ -67,7 +69,7 @@ function nemid_webform_edit_component($component) {
 /**
  * Implements template for _webform_render_component().
  */
-function nemid_webform_render_nemid_com_name($component, $value = NULL, $filter = TRUE, $submission = NULL) {
+function nemid_webform_render_component($component, $value = NULL, $filter = TRUE, $submission = NULL) {
   $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 
   $element = array(

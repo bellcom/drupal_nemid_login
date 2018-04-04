@@ -27,7 +27,7 @@ function _webform_edit_nemid_com_rid($component) {
  * Implements _webform_render_component().
  */
 function _webform_render_nemid_com_rid($component, $value = NULL, $filter = TRUE, $submission = NULL) {
-  $element = nemid_webform_render_nemid_com_name($component, $value, $filter, $submission);
+  $element = nemid_webform_render_component($component, $value, $filter, $submission);
 
   if (isset($_SESSION['nemid_login']['rid'])) {
     $element['#default_value'] = $_SESSION['nemid_login']['rid'];

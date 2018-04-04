@@ -23,7 +23,7 @@ function _webform_edit_nemid_com_name($component) {
  * Implements _webform_render_component().
  */
 function _webform_render_nemid_com_name($component, $value = NULL, $filter = TRUE, $submission = NULL) {
-  $element = nemid_webform_render_nemid_com_name($component, $value, $filter, $submission);
+  $element = nemid_webform_render_component($component, $value, $filter, $submission);
 
   if (isset($value[0])) {
     $element['#default_value'] = $value[0];
