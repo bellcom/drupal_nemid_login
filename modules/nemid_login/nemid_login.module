@@ -70,20 +70,7 @@ function nemid_login_block_view($delta = '') {
   switch ($delta) {
     case 'nemid_login':
       $block['subject'] = t('NemID Login');
-      $help = NULL;
-      if (variable_get('nemid_login_form_help')) {
-        if (is_array(variable_get('nemid_login_form_help')) && isset(variable_get('nemid_login_form_help')['value'])) {
-          $help = variable_get('nemid_login_form_help')['value'];
-        }
-        else {
-          $help = variable_get('nemid_login_form_help');
-        }
-      }
-      $block['content'] = theme('nemid_login_block', array(
-        'params' => _nemid_login_get_params(),
-        'settings' => _nemid_login_get_settings(),
-        'help' => $help,
-      ));
+      $block['content'] = theme('nemid_login_block');
       break;
   }
 
@@ -94,20 +81,7 @@ function nemid_login_block_view($delta = '') {
  * NemID login page callback.
  */
 function _nemid_login_page() {
-  $help = NULL;
-  if (variable_get('nemid_login_form_help')) {
-    if (is_array(variable_get('nemid_login_form_help')) && isset(variable_get('nemid_login_form_help')['value'])) {
-      $help = variable_get('nemid_login_form_help')['value'];
-    }
-    else {
-      $help = variable_get('nemid_login_form_help');
-    }
-  }
-  return theme('nemid_login_block', array(
-    'params' => _nemid_login_get_params(),
-    'settings' => _nemid_login_get_settings(),
-    'help' => $help,
-  ));
+  return theme('nemid_login_block');
 }
 
 /**
@@ -324,11 +298,16 @@ function _nemid_login_admin() {
       }
     }
   }
+
+  $nemid_login_form_help = variable_get('nemid_login_form_help', array(
+    'format' => 'filtered_html',
+    'value' => '',
+  ));
   $form['nemid_login_form_help'] = array(
     '#type' => 'text_format',
     '#title' => t('Nemid Login form help text'),
-    '#format' => 'filtered_html',
-    '#default_value' => (variable_get('nemid_login_form_help')) ? variable_get('nemid_login_form_help')['value'] : '',
+    '#format' => $nemid_login_form_help['format'],
+    '#default_value' => $nemid_login_form_help['value'],
   );
 
   return system_settings_form($form);
@@ -388,7 +367,7 @@ function nemid_login_form_alter(&$form, &$form_state, $form_id) {
 
       if (isset($_POST['response'])) {
         // Get address from serviceplatformen by CPR request.
-        $message = _drupal_nemid_login_verify();
+        $message = _nemid_login_verify();
 
         if ($message['status']) {
           nemid_populate_fields_recursive($form['submitted'], $message);
@@ -439,4 +418,41 @@ function nemid_login_webform_view($variables) {
     }
     return $block . drupal_render($variables['webform']['#form']);
   }
+}
+
+/**
+ * Theme preprocess function for nemid_login_block.
+ */
+function nemid_login_preprocess_nemid_login_block(&$vars) {
+  $vars['errors'] = FALSE;
+  if (isset($_SESSION['nemid_login']['errors'])) {
+    $vars['errors'] = TRUE;
+  }
+
+  $post_back_form_action = 'nemid/verify';
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $nid = arg(1);
+    $node = node_load($nid);
+    if ($node->type == 'webform') {
+      $post_back_form_action = 'node/' . $nid;
+    }
+  }
+  $vars['post_back_form_action'] = url($post_back_form_action);
+
+  if (!isset($vars['help'])) {
+    $help = variable_get('nemid_login_form_help', array(
+      'format' => 'filtered_html',
+      'value' => '',
+    ));
+    $vars['help'] = check_markup($help['value'], $help['format']);
+  }
+
+  if (!isset($vars['params'])) {
+    $vars['params'] = _nemid_login_get_params();
+  }
+
+  $settings = _nemid_login_get_settings();
+  $vars['settings'] = $settings;
+  drupal_add_js(array('nemidLogin' => $settings), array('type' => 'setting'));
+  drupal_add_js(drupal_get_path('module', 'nemid_login') . '/nemid_login.js');
 }
