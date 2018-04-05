@@ -1,9 +1,7 @@
-name = Drupal NemID
+name = NemID integration
 description = Provides multiple login integrations with NemID
-package = Bellcom
-version = 7.x-1.0-alpha1
+package = NemID
 core = 7.x
-php = 5.2
 
 dependencies[] = securepages
 dependencies[] = token

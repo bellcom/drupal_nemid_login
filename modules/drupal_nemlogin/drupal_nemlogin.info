@@ -1,8 +1,0 @@
-name = Drupal Nemlogin
-description = Provides a login link for Nemlogin, requires simplesaml integration
-package = Bellcom
-version = 7.x-1.0-alpha1
-core = 7.x
-php = 5.2
-
-dependencies[] = drupal_nemid

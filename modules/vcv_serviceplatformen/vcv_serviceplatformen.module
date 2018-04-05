@@ -1,23 +1,20 @@
 <?php
+
 /**
  * @file
- * Implements valghalla cpr validation with serviceplatformen.dk
- *
- * @author Thomas Thune Hansen <tth@bellcom.dk>
- * @copyright 2012 OS2 - Offentligt Digitaliseringsfællesskab.
- * See README.md at https://github.com/os2web/valghalla_mail
+ * Implements Valghalla CPR validation with serviceplatformen.dk.
  */
 
 /**
  * Implements hook_menu().
  */
 function vcv_serviceplatformen_menu() {
-  $items['admin/config/drupal_nemid/vcv_serviceplatformen'] = array(
+  $items['admin/config/nemid/vcv_serviceplatformen'] = array(
     'title' => 'CPRBasicInformation settings',
     'description' => 'Settings for CPRBasicInformation service serviceplatformen.dk',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('vcv_serviceplatformen_settings'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer site configuration'),
   );
 
   return $items;
@@ -35,9 +32,11 @@ function vcv_serviceplatformen_settings() {
     if ($message['status']) {
       $output = '<div style="font-size: 15px; color : green"><b>Succeed</b></div>';
 
-      if (variable_get('mode_selector') == 1) { //test mode
-        //using test_mode_fixed_cpr, if one provided, otherwise leave unchanged
-        $fixed_cpr = trim(variable_get('test_mode_fixed_cpr', $cpr));
+      // Test mode.
+      if (variable_get('vcv_serviceplatformen_mode_selector') == 1) {
+        // Using test_mode_fixed_cpr, if one provided,
+        // otherwise leave unchanged.
+        $fixed_cpr = trim(variable_get('vcv_serviceplatformen_test_mode_fixed_cpr', $cpr));
         if (!empty($fixed_cpr)) {
           $cpr = $fixed_cpr;
         }
@@ -57,25 +56,24 @@ function vcv_serviceplatformen_settings() {
     variable_set('test_cpr', '');
   }
 
-
   $form['mode_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Mode'),
   );
-  $form['mode_fieldset']['mode_selector'] = array(
+  $form['mode_fieldset']['vcv_serviceplatformen_mode_selector'] = array(
     '#type' => 'radios',
     '#title' => t('Mode selector'),
-    '#default_value' => variable_get('mode_selector', 0),
-    '#options' => array(0 => 'Live', 1 => 'Test'),
+    '#default_value' => variable_get('vcv_serviceplatformen_mode_selector', 0),
+    '#options' => array(0 => t('Live'), 1 => t('Test')),
   );
-  $form['mode_fieldset']['test_mode_fixed_cpr'] = array(
+  $form['mode_fieldset']['vcv_serviceplatformen_test_mode_fixed_cpr'] = array(
     '#type' => 'textfield',
     '#title' => t('Fixed test CPR (only if test mode is on)'),
-    '#default_value' => variable_get('test_mode_fixed_cpr'),
+    '#default_value' => variable_get('vcv_serviceplatformen_test_mode_fixed_cpr'),
     '#description' => t('Is set, fixed CPR will be used for all requests to the serviceplatformen instead of the provided CPR. Useful when testing is needed with NemID login block'),
     '#states' => array(
       'invisible' => array(
-        ':input[name="mode_selector"]' => array('value' => 0),
+        ':input[name="vcv_serviceplatformen_mode_selector"]' => array('value' => 0),
       ),
     ),
 
@@ -132,30 +130,6 @@ function vcv_serviceplatformen_settings() {
     '#default_value' => variable_get('vcv_serviceplatformen_location_test', ''),
     '#description' => t('ex. https://exttest.serviceplatformen.dk/service/CPRBasicInformation/CPRBasicInformation/1'),
   );
-
-//  $form['adrsog'] = array(
-//    '#title' => 'ADRSOG1',
-//    '#type' => 'fieldset',
-//  );
-//
-//  $form['adrsog']['vcv_serviceplatformen_adrsog_serviceagreementuuid'] = array(
-//    '#type' => 'textfield',
-//    '#title' => 'Serviceaftale UUID',
-//    '#default_value' => variable_get('vcv_serviceplatformen_adrsog_serviceagreementuuid', ''),
-//  );
-//
-//  $form['adrsog']['vcv_serviceplatformen_adrsog_serviceuuid'] = array(
-//    '#type' => 'textfield',
-//    '#title' => 'Service UUID',
-//    '#default_value' => variable_get('vcv_serviceplatformen_adrsog_serviceuuid', ''),
-//  );
-//
-//  $form['adrsog']['vcv_serviceplatformen_adrsog_location'] = array(
-//    '#type' => 'textfield',
-//    '#title' => 'Service location',
-//    '#default_value' => variable_get('vcv_serviceplatformen_adrsog_location', ''),
-//    '#description' => t('ex. https://exttest.serviceplatformen.dk/service/CPRBasicInformation/CPRBasicInformation/1'),
-//  );
 
   $form['vcv_serviceplatformen_usersystemuuid'] = array(
     '#type' => 'textfield',
@@ -229,18 +203,19 @@ function vcv_serviceplatformen_query($cpr) {
   ini_set('soap.wsdl_cache_ttl', 0);
 
   try {
-    $mode = variable_get('mode_selector');
+    $mode = variable_get('vcv_serviceplatformen_mode_selector');
     $wsdl_address = variable_get('vcv_serviceplatformen_wsdl');
     $service_location = variable_get('vcv_serviceplatformen_location');
     $certfile_passphrase = variable_get('vcv_serviceplatformen_certfile_passphrase');
     $certfile = variable_get('vcv_serviceplatformen_certfile');
 
-    if ($mode == 1) { //test mode
+    // Test mode.
+    if ($mode == 1) {
       $service_location = variable_get('vcv_serviceplatformen_location_test');
       $certfile = variable_get('vcv_serviceplatformen_certfile_test');
 
-      //using test_mode_fixed_cpr, if one provided, otherwise leave unchanged
-      $fixed_cpr = trim(variable_get('test_mode_fixed_cpr', $cpr));
+      // Using test_mode_fixed_cpr, if one provided, otherwise leave unchanged.
+      $fixed_cpr = trim(variable_get('vcv_serviceplatformen_test_mode_fixed_cpr', $cpr));
       if (!empty($fixed_cpr)) {
         $cpr = $fixed_cpr;
       }
@@ -313,7 +288,7 @@ function vcv_serviceplatformen_get_address($cpr) {
   // If all goes well we return de address as valghalla wants it.
   if ($message['status']) {
     return array(
-      'mode' => variable_get('mode_selector')? 'TEST mode' : 'LIVE mode',
+      'mode' => variable_get('vcv_serviceplatformen_mode_selector') ? 'TEST mode' : 'LIVE mode',
       'status' => TRUE,
       'name' => isset($message['adresseringsnavn']) ? $message['adresseringsnavn'] : '',
       'road' => isset($message['vejadresseringsnavn']) ? $message['vejadresseringsnavn'] : '',

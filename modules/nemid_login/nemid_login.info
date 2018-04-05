@@ -1,0 +1,6 @@
+name = NemID Login
+description = Provides a login box for NemID
+package = NemID
+core = 7.x
+
+dependencies[] = nemid
